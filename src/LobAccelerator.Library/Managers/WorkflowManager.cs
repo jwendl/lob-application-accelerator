@@ -15,9 +15,9 @@ namespace LobAccelerator.Manager.Library
             teamsManager = new TeamsManager();
         }
 
-        public Task CreateWorkflowAsync(Workflow workflow)
+        public async Task CreateResourceAsync(Workflow resource)
         {
-            throw new NotImplementedException();
+            await teamsManager.CreateResourceAsync(resource.Teams);
         }
     }
 }

@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Interfaces
 {
-    public interface IWorkflowManager
+    public interface IWorkflowManager : IResourceManager<Workflow>
     {
-        Task CreateWorkflowAsync(Workflow workflow);
     }
 }
