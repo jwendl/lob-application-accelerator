@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models.Teams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
