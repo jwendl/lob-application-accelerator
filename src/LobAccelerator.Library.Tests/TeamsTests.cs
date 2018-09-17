@@ -1,32 +1,17 @@
-﻿using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using Xunit;
 
-namespace LobAccelerator.SchemaGenerator
+namespace LobAccelerator.Library.Tests
 {
-    class Program
+    public class TeamsTests
     {
-        static void Main(string[] args)
+        public static Workflow Workflow => new Workflow()
         {
-            var generator = new JSchemaGenerator();
-            var schema = generator.Generate(typeof(Workflow));
-
-            using (var streamWriter = File.CreateText(@"workflow.schema.json"))
-            using (var jsonWriter = new JsonTextWriter(streamWriter))
-            {
-                jsonWriter.Formatting = Formatting.Indented;
-                schema.WriteTo(jsonWriter);
-            }
-
-            var exampleWorkflow = new Workflow()
-            {
-                Teams = new List<Team>()
+            Teams = new List<Team>()
                 {
                     new Team()
                     {
@@ -62,15 +47,19 @@ namespace LobAccelerator.SchemaGenerator
                         }
                     }
                 }
-            };
+        };
 
-            var jsonOutput = JsonConvert.SerializeObject(exampleWorkflow);
-            var jObject = JObject.Parse(jsonOutput);
 
-            var isValid = jObject.IsValid(schema);
-            var validOutput = isValid ? "valid" : "invalid";
+        [Fact]
+        public void AddPeopleToChannel()
+        {
+            //Arrange
+            var members = Workflow.Teams.First().Members;
+            var membersSettings = Workflow.Teams.First().MemberSettings;
 
-            Console.WriteLine($"The json is {validOutput}");
+            //Act
+
+            //Assert
         }
     }
 }
