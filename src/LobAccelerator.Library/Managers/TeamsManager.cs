@@ -21,9 +21,11 @@ namespace LobAccelerator.Library.Managers
             this.httpClient = httpClient;
         }
 
-        public Task CreateResourceAsync(Team resource)
+        public async Task CreateResourceAsync(Team resource)
         {
-            throw new NotImplementedException();
+            await AddPeopleToChannelAsync(resource.Members, resource.DisplayName);
+
+            throw new NotImplementedException("Only AddPeopleToChannelAsync so far.");
         }
 
         public async Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
@@ -33,7 +35,9 @@ namespace LobAccelerator.Library.Managers
             foreach (var member in members)
             {
                 var channelObj = new CreateChannelGraphObject(member);
-                await httpClient.PostContentAsync(addMemberUrl, channelObj);
+                var response = await httpClient.PostContentAsync(addMemberUrl, channelObj);
+
+                response.EnsureSuccessStatusCode();
             }
         }
 
