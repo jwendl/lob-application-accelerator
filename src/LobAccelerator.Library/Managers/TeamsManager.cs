@@ -2,6 +2,7 @@
 using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
+using LobAccelerator.Library.Models.Teams.Groups;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,39 @@ namespace LobAccelerator.Library.Managers
     public class TeamsManager : ITeamsManager
     {
         private readonly HttpClient httpClient;
+        private readonly string _apiVersion;
 
         public TeamsManager(HttpClient httpClient)
         {
             this.httpClient = httpClient;
+            _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
         public Task CreateResourceAsync(Team resource)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates a new group where teams will be assigned to.
+        /// </summary>
+        /// <returns>Group HTTP Response</returns>
+        public async Task CreateGroup(Team resource)
+        {
+            var groupUri = $"{_apiVersion}/groups";
+
+            var requestContent = new GroupContent
+            {
+                Description = resource.Description,
+                DisplayName = resource.DisplayName,
+                GroupTypes = new string[] { GroupTypes.Unified.ToString() },
+                MailEnabled = false,
+                MailNickname = resource.MailNickname,
+                SecurityEnabled = false,
+                Members = resource.Members
+            };
+
+            await httpClient.PostContentAsync(groupUri, requestContent);
         }
 
         public async Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
