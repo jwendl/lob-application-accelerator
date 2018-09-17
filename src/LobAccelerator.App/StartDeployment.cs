@@ -16,7 +16,8 @@ namespace LobAccelerator.App
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
-            HttpRequest req, ILogger log)
+            HttpRequest req,
+            ILogger log)
         {
             var validator = new TeamsInputValidator();
             log.LogInformation("C# HTTP trigger function processed a request.");
@@ -24,13 +25,15 @@ namespace LobAccelerator.App
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var teamConfig = JsonConvert.DeserializeObject<TeamsInput>(requestBody);
 
-            var validated = validator.Validate(teamConfig, out var configvalidation);
-            var verbose = validator.GetVerboseValitadion(configvalidation);
+            var hasToken = req.Headers.TryGetValue("Authorization", out var authToken);
+            var validated = validator.Validate(teamConfig, hasToken, out var configvalidation);
 
+
+            var verbose = validator.GetVerboseValitadion(configvalidation);
 
             return validated
                 ? (ActionResult)new OkObjectResult($"Team: {teamConfig.Name} is schedulled for creation")
-                : new BadRequestObjectResult($"Please pass a valid TeamsConfig.json file on the request body, reason: {verbose}");
+                : new BadRequestObjectResult($"Invalid HttpRequest, reason: {verbose}");
         }
     }
 }
