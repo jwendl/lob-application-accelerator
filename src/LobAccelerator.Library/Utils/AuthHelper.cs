@@ -24,15 +24,29 @@ namespace LobAccelerator.Library.Utils
         /// <param name="expectedIssuer"></param>
         /// <param name="expectedAudience"></param>
         /// <param name="expectedScopes"></param>
+        /// <param name="log"></param>
         /// <returns></returns>
-        static bool ValidateToken(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes)
+        static async Task<ClaimsPrincipal> ValidateToken(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log?)
         {
             // 1) token is valid syntactically
 
             if (authenticationHeaderValue?.Scheme != "Bearer")
             {
-                return false;
+                throw new ArgumentException(string.Format("{0} is not supported", authenticationHeaderValue?.Scheme), "authenticationHeaderValue")
             }
+
+            var documentRetriever = new HttpDocumentRetriever
+            {
+                RequireHttps = expectedIssuer.StartsWith("https://")
+            };
+
+            var configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                $"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+                new OpenIdConnectConfigurationRetriever(),
+                documentRetriever
+            );
+
+            var configuration = await configurationManager.GetConfigurationAsync(CancellationToken.None);
 
             var validationParameter = new TokenValidationParameters()
             {
@@ -55,6 +69,7 @@ namespace LobAccelerator.Library.Utils
                 {
                     var handler = new JwtSecurityTokenHandler();
                     result = handler.ValidateToken(authenticationHeaderValue.Parameter, validationParameter, out var token);
+                    return result;
                 }
                 catch (SecurityTokenSignatureKeyNotFoundException)
                 {
@@ -71,7 +86,7 @@ namespace LobAccelerator.Library.Utils
                 }
             }
 
-            return result;
+            return null;
         }
 
         // 2) token's issuer matches expected
