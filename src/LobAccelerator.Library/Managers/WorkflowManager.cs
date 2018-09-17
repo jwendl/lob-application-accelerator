@@ -17,7 +17,8 @@ namespace LobAccelerator.Manager.Library
 
         public async Task CreateResourceAsync(Workflow resource)
         {
-            await teamsManager.CreateResourceAsync(resource.Teams);
+            foreach (var team in resource.Teams)
+                await teamsManager.CreateResourceAsync(team);
         }
     }
 }
