@@ -1,4 +1,4 @@
-﻿namespace LobAccelerator.SchemaGenerator.Models
+﻿namespace LobAccelerator.Library.Models
 {
     public enum GroupTypes
     {

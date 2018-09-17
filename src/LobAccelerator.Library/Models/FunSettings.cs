@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
 
-namespace LobAccelerator.SchemaGenerator.Models
+namespace LobAccelerator.Library.Models
 {
     [JsonObject("funSettings")]
     public class FunSettings
