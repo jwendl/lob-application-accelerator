@@ -18,7 +18,7 @@ namespace LobAccelerator.Library.Utils
         }
 
         /// <summary>
-        /// Validate a bearer token, and make sure it matches expected issuer, audience, scopes
+        /// Validate a bearer token, and make sure it matches expected issuer, audience
         /// </summary>
         /// <param name="authenticationHeaderValue"></param>
         /// <param name="expectedIssuer"></param>
