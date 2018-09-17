@@ -4,20 +4,25 @@ using System.Linq;
 
 namespace LobAccelerator.Library.Validators
 {
-    public class TeamsInputValidator : IValidator
+    public class TeamsInputValidator
     {
 
-        public bool Validate(TeamsInput ti)
+        public bool Validate(TeamsInput ti, bool hastoken)
         {
-            return Validate(ti, out var dummy);
+            return Validate(ti, hastoken, out var dummy);
         }
 
-        public bool Validate(TeamsInput ti, out TeamsInputValidation validation)
+        public bool Validate(TeamsInput ti, bool hastoken, out TeamsInputValidation validation)
         {
             var rta = true;
             validation = new TeamsInputValidation();
 
-            if (ti == null)
+            if (!hastoken)
+            {
+                validation = TeamsInputValidation.NoAuthToken;
+                rta = false;
+            }
+            else if (ti == null)
             {
                 validation = TeamsInputValidation.InvalidTeamsConfigObject;
                 rta = false;
@@ -75,6 +80,9 @@ namespace LobAccelerator.Library.Validators
                     break;
                 case TeamsInputValidation.ChannelMembersDontMatchTeamsMembers:
                     verbose = "Channel members should exist firts as Teams members";
+                    break;
+                case TeamsInputValidation.NoAuthToken:
+                    verbose = "This function requires an Authorization header in the request";
                     break;
                 default:
                     verbose = "OK";
