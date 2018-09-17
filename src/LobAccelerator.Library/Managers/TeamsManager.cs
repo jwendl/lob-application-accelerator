@@ -24,8 +24,10 @@ namespace LobAccelerator.Library.Managers
             _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
-        public Task CreateResourceAsync(Team resource)
+        public async Task CreateResourceAsync(Team resource)
         {
+            await CreateGroupAsync(resource);
+
             throw new NotImplementedException();
         }
 
@@ -33,7 +35,7 @@ namespace LobAccelerator.Library.Managers
         /// Creates a new group where teams will be assigned to.
         /// </summary>
         /// <returns>Group HTTP Response</returns>
-        public async Task CreateGroup(Team resource)
+        public async Task CreateGroupAsync(Team resource)
         {
             var groupUri = $"{_apiVersion}/groups";
 
@@ -50,6 +52,8 @@ namespace LobAccelerator.Library.Managers
 
             await httpClient.PostContentAsync(groupUri, requestContent);
         }
+
+
 
         public async Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
         {
