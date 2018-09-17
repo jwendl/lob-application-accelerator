@@ -1,6 +1,7 @@
 ﻿using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models.Common;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,10 +32,14 @@ namespace LobAccelerator.Manager.Library
             return client;
         }
 
-        public async Task CreateResourceAsync(Workflow resource)
+        public async Task<Result> CreateResourceAsync(Workflow resource)
         {
+            var result = new Result();
+
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
+
+            return result;
         }
     }
 }
