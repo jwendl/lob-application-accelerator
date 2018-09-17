@@ -17,5 +17,11 @@ namespace LobAccelerator.Library.Extensions
 
             return await httpClient.PostAsync(url, body);
         }
+
+        public static async Task<HttpResponseMessage> GetContentAsync
+           (this HttpClient httpClient, string url)
+        {
+            return await httpClient.GetAsync(url);
+        }
     }
 }
