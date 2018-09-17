@@ -1,13 +1,14 @@
 using LobAccelerator.Library.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
-        public static Workflow ExampleWorkflow => new Workflow()
+        public static Workflow Workflow => new Workflow()
         {
             Teams = new List<Team>()
                 {
@@ -52,10 +53,10 @@ namespace LobAccelerator.Library.Tests
         public void AddPeopleToChannel()
         {
             //Arrange
-            var workflow = ExampleWorkflow;
+            var members = Workflow.Teams.First().Members;
+            var membersSettings = Workflow.Teams.First().MemberSettings;
 
             //Act
-            
 
             //Assert
         }
