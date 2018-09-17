@@ -1,4 +1,4 @@
-﻿namespace LobAccelerator.Library.Models
+﻿namespace LobAccelerator.Library.Models.Teams.Groups
 {
     public enum GroupTypes
     {
