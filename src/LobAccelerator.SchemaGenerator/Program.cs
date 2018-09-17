@@ -1,4 +1,4 @@
-﻿using LobAccelerator.SchemaGenerator.Models;
+﻿using LobAccelerator.Library.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;

@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace LobAccelerator.SchemaGenerator.Models
+namespace LobAccelerator.Library.Models
 {
     [JsonObject("workflow")]
     public class Workflow

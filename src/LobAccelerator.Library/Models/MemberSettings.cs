@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace LobAccelerator.SchemaGenerator.Models
+namespace LobAccelerator.Library.Models
 {
     [JsonObject("memberSettings")]
     public class MemberSettings
