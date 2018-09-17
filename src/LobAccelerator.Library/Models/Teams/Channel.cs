@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
 
-namespace LobAccelerator.Library.Models
+namespace LobAccelerator.Library.Models.Teams
 {
     [JsonObject("channel")]
     public class Channel
