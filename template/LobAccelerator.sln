@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "LobAccelerator.Template", "LobAccelerator.Template\LobAccelerator.Template.deployproj", "{7B52A026-2434-49FC-8FF5-866B91EF06D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B52A026-2434-49FC-8FF5-866B91EF06D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B52A026-2434-49FC-8FF5-866B91EF06D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B52A026-2434-49FC-8FF5-866B91EF06D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B52A026-2434-49FC-8FF5-866B91EF06D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {465AE93B-E945-4D17-B089-89F5CC6D35CB}
+	EndGlobalSection
+EndGlobal
