@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace LobAccelerator.Library.Models
+namespace LobAccelerator.Library.Models.Teams
 {
     [JsonObject("team")]
     public class Team
