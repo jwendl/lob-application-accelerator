@@ -25,7 +25,7 @@ namespace LobAccelerator.Library.Managers
             _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
-        public async Task CreateResourceAsync(Team resource)
+        public async Task<Result> CreateResourceAsync(Team resource)
         {
             var groupResult = await CreateGroupAsync(resource);
 
