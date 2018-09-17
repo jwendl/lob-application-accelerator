@@ -1,12 +1,20 @@
 ﻿using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using System;
 using System.Threading.Tasks;
 
-namespace LobAccelerator.Library
+namespace LobAccelerator.Manager.Library
 {
     public class WorkflowManager : IWorkflowManager
     {
+        private readonly ITeamsManager teamsManager;
+
+        public WorkflowManager()
+        {
+            teamsManager = new TeamsManager();
+        }
+
         public Task CreateWorkflowAsync(Workflow workflow)
         {
             throw new NotImplementedException();
