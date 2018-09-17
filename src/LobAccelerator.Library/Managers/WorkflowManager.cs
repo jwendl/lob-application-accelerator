@@ -16,15 +16,18 @@ namespace LobAccelerator.Manager.Library
         public WorkflowManager(string accessToken)
         {
             httpClient = CreateHttpClient(BASE_URL, accessToken);
-
             teamsManager = new TeamsManager(httpClient);
         }
 
         private HttpClient CreateHttpClient(string baseUrl, string accessToken)
         {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(baseUrl);
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(baseUrl)
+            };
+
             client.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
+
             return client;
         }
 
