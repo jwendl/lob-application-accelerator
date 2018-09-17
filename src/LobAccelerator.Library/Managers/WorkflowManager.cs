@@ -2,6 +2,7 @@
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using System;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Manager.Library
@@ -10,7 +11,7 @@ namespace LobAccelerator.Manager.Library
     {
         private readonly ITeamsManager teamsManager;
 
-        public WorkflowManager()
+        public WorkflowManager() // AuthenticationHeaderValue authenticationHeaderValue)
         {
             teamsManager = new TeamsManager();
         }
