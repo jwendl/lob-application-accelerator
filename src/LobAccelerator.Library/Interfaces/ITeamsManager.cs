@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Interfaces
 {
-    public interface ITeamsManager : IResourceManager<Team>
+    public interface ITeamsManager : IResourceManager<TeamResource>
     {
-        Task<IResult> CreateResourceAsync(Team resource);
+        Task<IResult> CreateResourceAsync(TeamResource resource);
         Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId);
     }
 }

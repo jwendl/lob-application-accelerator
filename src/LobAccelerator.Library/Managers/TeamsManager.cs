@@ -3,6 +3,7 @@ using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Models.Teams.Groups;
+using LobAccelerator.Library.Models.Teams.Teams;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -21,18 +22,19 @@ namespace LobAccelerator.Library.Managers
             _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
-        public async Task<IResult> CreateResourceAsync(Team resource)
+        public async Task<IResult> CreateResourceAsync(TeamResource resource)
         {
             Result<Group> group = await CreateGroupAsync(resource);
+            Result<Team> team = await CreateTeam(group.Value.Id, resource);
             
-            return Result.Combine(group);
+            return Result.Combine(group, team);
         }
 
         /// <summary>
         /// Creates a new group where teams will be assigned to.
         /// </summary>
         /// <returns>Group ID</returns>
-        public async Task<Result<Group>> CreateGroupAsync(Team resource)
+        public async Task<Result<Group>> CreateGroupAsync(TeamResource resource)
         {
             var result = new Result<Group>();
             var groupUri = $"{_apiVersion}/groups";
@@ -62,14 +64,37 @@ namespace LobAccelerator.Library.Managers
 
             return result;
         }
-        
+
         /// <summary>
-        /// Creates a new Teams
+        /// Creates a new Team to an existing group.
         /// </summary>
         /// <returns></returns>
-        public async Task CreateTeam()
+        public async Task<Result<Team>> CreateTeam(string groupId, TeamResource resource)
         {
+            var result = new Result<Team>();
+            var uri = $"{_apiVersion}/groups/{groupId}/team";
 
+            var requestContent = new TeamBody
+            {
+                MemberSettings = resource.MemberSettings,
+                MessagingSettings = resource.MessagingSettings,
+                FunSettings = resource.FunSettings
+            };
+
+            var response = await httpClient.PutContentAsync(uri, requestContent);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                result.Value = JsonConvert.DeserializeObject<Team>(responseString);
+                return result;
+            }
+
+            result.HasError = true;
+            result.Error = response.ReasonPhrase;
+            result.DetailedError = responseString;
+
+            return result;
         }
 
 
