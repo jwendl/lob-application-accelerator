@@ -25,14 +25,15 @@ namespace LobAccelerator.Library.Managers
             _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
-        public async Task<Result> CreateResourceAsync(Team resource)
+        public async Task CreateResourceAsync(Team resource)
         {
-            var groupResult = await CreateGroupAsync(resource);
+            Result<Group> group = await CreateGroupAsync(resource);
 
-            if (groupResult.HasError)
+            if (group.HasError)
             {
-
+                return;
             }
+            
 
             throw new NotImplementedException();
         }
@@ -41,12 +42,12 @@ namespace LobAccelerator.Library.Managers
         /// Creates a new group where teams will be assigned to.
         /// </summary>
         /// <returns>Group ID</returns>
-        public async Task<Result> CreateGroupAsync(Team resource)
+        public async Task<Result<Group>> CreateGroupAsync(Team resource)
         {
-            var result = new Result();
+            var result = new Result<Group>();
             var groupUri = $"{_apiVersion}/groups";
 
-            var requestContent = new GroupContent
+            var requestContent = new GroupBody
             {
                 Description = resource.Description,
                 DisplayName = resource.DisplayName,
@@ -57,53 +58,21 @@ namespace LobAccelerator.Library.Managers
             };
 
             var response = await httpClient.PostContentAsync(groupUri, requestContent);
-
-            if (!response.IsSuccessStatusCode)
+            var responseString = await response.Content.ReadAsStringAsync();
+            
+            if (response.IsSuccessStatusCode)
             {
-                result.HasError = true;
-                result.ErrorMessage = response.ReasonPhrase;
-
+                result.Value = JsonConvert.DeserializeObject<Group>(responseString);
                 return result;
             }
 
-            var groupIdResult = await GetGroupIdByDisplayName(resource.DisplayName);
-
-            if (groupIdResult.HasError)
-            {
-                result.HasError = true;
-                result.ErrorMessage = groupIdResult.ErrorMessage;
-
-                return result;
-            }
-
-            result.Value = groupIdResult.Value;
+            result.HasError = true;
+            result.Error = response.ReasonPhrase;
+            result.DetailedError = responseString;
 
             return result;
         }
-
-        /// <summary>
-        /// Returns the group Id based on the display name.
-        /// </summary>
-        /// <param name="displayName"></param>
-        /// <returns></returns>
-        public async Task<Result> GetGroupIdByDisplayName(string displayName)
-        {
-            var result = new Result();
-            var uri = $"{_apiVersion}/groups?$filter=displayName eq '{displayName}'";
-
-            var response = await httpClient.GetContentAsync(uri);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                result.HasError = true;
-                result.ErrorMessage = response.ReasonPhrase;
-            }
-
-            result.Value = await response.Content.ReadAsStringAsync();
-
-            return result;
-        }
-
+        
         /// <summary>
         /// Creates a new Teams
         /// </summary>

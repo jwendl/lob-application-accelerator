@@ -32,14 +32,10 @@ namespace LobAccelerator.Manager.Library
             return client;
         }
 
-        public async Task<Result> CreateResourceAsync(Workflow resource)
+        public async Task CreateResourceAsync(Workflow resource)
         {
-            var result = new Result();
-
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
-
-            return result;
         }
     }
 }

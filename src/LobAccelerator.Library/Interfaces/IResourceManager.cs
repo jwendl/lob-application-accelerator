@@ -5,6 +5,6 @@ namespace LobAccelerator.Library.Interfaces
 {
     public interface IResourceManager<T>
     {
-        Task<Result> CreateResourceAsync(T resource);
+        Task CreateResourceAsync(T resource);
     }
 }
