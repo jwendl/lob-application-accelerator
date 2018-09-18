@@ -2,7 +2,8 @@ using LobAccelerator.Library.Factories;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
-using LobAccelerator.Utils.Auth;
+using LobAccelerator.Library.Tests.Utils.Auth;
+using LobAccelerator.Library.Tests.Utils.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -13,6 +14,15 @@ namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
+        private readonly ConfigurationManager configuration;
+        private readonly TokenRetriever tokenRetriever;
+
+        public TeamsTests()
+        {
+            configuration = new ConfigurationManager();
+            tokenRetriever = new TokenRetriever(configuration);
+        }
+
         public static Workflow Workflow => new Workflow()
         {
             Teams = new List<Team>()
@@ -53,6 +63,7 @@ namespace LobAccelerator.Library.Tests
                 }
         };
 
+
         [Fact]
         public async Task AddNewGroup()
         {
@@ -85,8 +96,8 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var accessToken = await TokenRetriever.GetAccessTokenByAuthorizationCode();
-            var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync("Group.ReadWrite.All");
+            var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;
         }
     }
