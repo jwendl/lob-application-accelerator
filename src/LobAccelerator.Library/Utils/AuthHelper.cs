@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Utils
 {
-    class AuthHelper
+    public class AuthHelper
     {
         static AuthHelper()
         {
@@ -26,8 +26,12 @@ namespace LobAccelerator.Library.Utils
         /// <param name="expectedScopes"></param>
         /// <param name="log"></param>
         /// <returns></returns>
-        static async Task<ClaimsPrincipal> ValidateTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log)
+        public static async Task<ClaimsPrincipal> ValidateTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log = null)
         {
+            if (log == null)
+                log = new DefaultLogger();
+
+
             if (authenticationHeaderValue?.Scheme != "Bearer")
             {
                 throw new ArgumentException(string.Format("{0} is not supported", authenticationHeaderValue?.Scheme), "authenticationHeaderValue");
