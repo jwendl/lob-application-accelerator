@@ -6,10 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Threading.Tasks;
-using static LobAccelerator.App.GlobalSettings;
+using static LobAccelerator.App.Util.GlobalSettings;
 
 
-namespace LobAccelerator.App
+namespace LobAccelerator.App.Functions
 {
     public static class CleaningUp
     {

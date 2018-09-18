@@ -8,9 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using LobAccelerator.App;
-using static LobAccelerator.App.GlobalSettings;
+using static LobAccelerator.App.Util.GlobalSettings;
 
-namespace LobAccelerator.App
+
+namespace LobAccelerator.App.Functions
 {
     public static class CreateTasksTree
     {

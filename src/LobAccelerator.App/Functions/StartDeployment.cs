@@ -12,10 +12,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using LobAccelerator.App;
-using static LobAccelerator.App.GlobalSettings;
+using static LobAccelerator.App.Util.GlobalSettings;
 
-
-namespace LobAccelerator.App
+namespace LobAccelerator.App.Functions
 {
     public static class StartDeployment
     {
