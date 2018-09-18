@@ -36,8 +36,8 @@ namespace LobAccelerator.Library.Tests
                         MailNickname = $"group{teamNumber}",
                         Members = new List<string>()
                         {
-                            "juswen@microsoft.com",
-                            "ridize@microsoft.com",
+                            "jwendl@jwazuread.onmicrosoft.com",
+                            "testuser001@jwazuread.onmicrosoft.com",
                         },
                         MemberSettings = new MemberSettings()
                         {
@@ -119,16 +119,17 @@ namespace LobAccelerator.Library.Tests
         {
             //Arrange
             var workflow = CreateWorkflow(3);
-
-            var teamId = workflow.Teams.First().DisplayName;
-            var members = workflow.Teams.First().Members;
+            var team = CreateWorkflow(3).Teams.First();
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
             //Act
-            await teamsManager.AddPeopleToChannelAsync(members, teamId);
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var membersResult = await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Value.Id);
 
             //Assert
+            Assert.False(membersResult.HasError());
         }
 
         [Fact]
@@ -148,7 +149,9 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync("Group.ReadWrite.All");
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
+                "Group.ReadWrite.All", 
+                "User.ReadBasic.All");
             var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;
         }
