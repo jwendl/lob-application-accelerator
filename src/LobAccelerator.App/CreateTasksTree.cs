@@ -7,30 +7,34 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using LobAccelerator.App;
+using static LobAccelerator.App.GlobalSettings;
 
 namespace LobAccelerator.App
 {
     public static class CreateTasksTree
     {
-        const string QUEUE_NAME = "teams-requested-tasks";
-
         [FunctionName("CreateTasksTree")]
         public static void Run(
-            [QueueTrigger(QUEUE_NAME)]
+            [QueueTrigger(REQUEST_QUEUE)]
             string queueMsg,
-            [Table("teamtask")]out TeamsConfiguration teamEntry,
-            [Table("membertask")] ICollector<MemeberConfiguration> memberEntries,
-            [Table("channeltask")] ICollector<ChannelConfiguration> channelEntries,
-            [Queue("pending-team-tasks")] out CloudQueueMessage newtask,
+            [Table(TEAM_TASK_TABLE)]
+            out TeamsConfiguration teamEntry,
+            [Table(MEMBER_TASK_TABLE)]
+            ICollector<MemeberConfiguration> memberEntries,
+            [Table(CHANNEL_TASK_TABLE)]
+            ICollector<ChannelConfiguration> channelEntries,
+            [Queue(TEAMS_TASK_QUEUE)]
+            out CloudQueueMessage newTeamsTask,
             ILogger log)
         {
-            log.LogInformation($"C# Queue trigger function processed: {queueMsg}");
+            log.LogInformation($"CreateTasksTree trigger function processed for requested Id: {queueMsg}");
 
             var teamConfig = JsonConvert.DeserializeObject<TeamsJsonConfiguration>(queueMsg);
 
             //create an entry in table for teamconfiguration
             teamEntry = CreateTeamEntry(teamConfig);
-            var memberlist= CreateMemberEntries(teamConfig, teamEntry);
+            var memberlist = CreateMemberEntries(teamConfig, teamEntry);
             foreach (var m in memberlist)
             {
                 memberEntries.Add(m);
@@ -41,7 +45,7 @@ namespace LobAccelerator.App
             {
                 channelEntries.Add(c);
             }
-            newtask = new CloudQueueMessage(teamEntry.RowKey);
+            newTeamsTask = new CloudQueueMessage(teamEntry.RowKey);
         }
 
         private static TeamsConfiguration CreateTeamEntry(TeamsJsonConfiguration teamConfig)
@@ -73,7 +77,7 @@ namespace LobAccelerator.App
         }
 
         private static List<ChannelConfiguration> CreateChannelEntries(
-            TeamsJsonConfiguration teamConfig, 
+            TeamsJsonConfiguration teamConfig,
             TeamsConfiguration teamEntry)
         {
             var lista = new List<ChannelConfiguration>();

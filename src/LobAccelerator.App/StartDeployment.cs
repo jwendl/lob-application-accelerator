@@ -7,30 +7,27 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LobAccelerator.App;
+using static LobAccelerator.App.GlobalSettings;
+
 
 namespace LobAccelerator.App
 {
     public static class StartDeployment
     {
-        const string TABLE_NAME = "parameters";
-        const string PARTITION_KEY = "Authorization";
-        const string TOKEN_ROW = "refresh-token";
-        const string QUEUE_NAME = "teams-requested-tasks";
-
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
-            [Table(TABLE_NAME, PARTITION_KEY, TOKEN_ROW)]
+            [Table(PARAM_TABLE, PARTITION_KEY, TOKEN_ROW)]
             Parameter parameter,
-            [Table(TABLE_NAME, PARTITION_KEY)]
+            [Table(PARAM_TABLE, PARTITION_KEY)]
             IAsyncCollector<Parameter> tokenParameters,
-            [Queue(QUEUE_NAME)]
+            [Queue(REQUEST_QUEUE)]
             CloudQueue  queue,
             ILogger log)
         {
