@@ -1,0 +1,13 @@
+{
+  "AzureAd": {
+    "Resource": "https://graph.microsoft.com",
+    "ClientId": "398917db-d35d-4bd9-81cf-c3ff85c60e12"
+  },
+  "AzureStorageAccount": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=hacklob;AccountKey=cEsIOUAMqAcPuJfGHzB464BslhC3SuZZnODyKYRHgxe96JfU4m3nntWUq8ypiIRkX2tT1zfu9HL2kWtQp1rYtA==;EndpointSuffix=core.windows.net",
+    "ContainerName": "TempLobFiles"
+  },
+  "LobEngine": {
+    "Endpoint": "https://allanecho.azurewebsites.net/api/HttpTriggerCSharp1?code=geOq1jr5Ewc9GupJzJdirc5unKxv6iLGXp6bbMhrajFyTgShkNU99A=="
+  }
+}
