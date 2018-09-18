@@ -22,9 +22,9 @@ namespace LobAccelerator.App.Functions
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
-            [Table(PARAM_TABLE, PARTITION_KEY, TOKEN_ROW)]
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
             Parameter parameter,
-            [Table(PARAM_TABLE, PARTITION_KEY)]
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY)]
             IAsyncCollector<Parameter> tokenParameters,
             [Queue(REQUEST_QUEUE)]
             CloudQueue  queue,
@@ -73,8 +73,8 @@ namespace LobAccelerator.App.Functions
             {
                 parameter = new Parameter
                 {
-                    PartitionKey = PARTITION_KEY,
-                    RowKey = TOKEN_ROW,
+                    PartitionKey = PARAM_PARTITION_KEY,
+                    RowKey = PARAM_TOKEN_ROW,
                     Value = authToken
                 };
 
