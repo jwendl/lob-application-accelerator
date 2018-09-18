@@ -1,11 +1,10 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace LobAccelerator.App.Model
 {
-    public class TeamsConfiguration: TableEntity
+    public class TeamsConfiguration : TableEntity
     {
         //PartitionKey: "TeamsTask"
         //Rowkey: Guid
@@ -27,12 +26,11 @@ namespace LobAccelerator.App.Model
         //Rowkey: Guid
         public string Name { get; set; }
         public string Description { get; set; }
-    }
+        public string MemberList { get; set; }
 
-    public class ChannelMembersConfiguration : TableEntity
-    {
-        //PartitionKey: TeamsConfiguration.RowKey
-        //Rowkey: ChannelConfiguration.RowKey
-        public string MemberName { get; set; }
+        public IEnumerable<string> GetMembersList()
+        {
+            return MemberList.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        }
     }
 }
