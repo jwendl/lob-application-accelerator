@@ -30,11 +30,6 @@ namespace LobAccelerator.Library.Utils
 
         static TokenCache usertokenCache;
 
-        /// <summary>
-        /// Path to the token cache
-        /// </summary>
-        public static readonly string CacheFilePath = ConfigurationManager.AppSettings["TokenCacheFilename"];
-
         private static readonly object FileLock = new object();
 
         // TODO prevent deadlock
@@ -47,13 +42,15 @@ namespace LobAccelerator.Library.Utils
             lock (FileLock)
             {
                 args.TokenCache.Deserialize(
-                    StorageHelper.DownloadBlob(
+                    StorageHelper.BlobExistsAsync(
                             ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                            ConfigurationManager.AppSettings["TokenCacheBlobName"],
-                            CacheFilePath)
-                        .GetAwaiter().GetResult()
+                            ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                        .GetAwaiter().GetResult() //task.wait (s)
                     ? ProtectedData.Unprotect(
-                        File.ReadAllBytes(CacheFilePath),
+                        StorageHelper.DownloadBlobAsync(
+                            ConfigurationManager.AppSettings["TokenCacheContainerName"],
+                            ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                        .GetAwaiter().GetResult(),
                         null,
                         DataProtectionScope.CurrentUser)
                     : null);
@@ -68,11 +65,13 @@ namespace LobAccelerator.Library.Utils
                 lock (FileLock)
                 {
                     // reflect changes in the persistent store
-                    File.WriteAllBytes(CacheFilePath,
-                                       ProtectedData.Protect(args.TokenCache.Serialize(),
-                                                             null,
-                                                             DataProtectionScope.CurrentUser)
-                                      );
+                    StorageHelper.UploadBlobAsync(
+                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
+                        ConfigurationManager.AppSettings["TokenCacheBlobName"],
+                        ProtectedData.Protect(args.TokenCache.Serialize(),
+                                                null,
+                                                DataProtectionScope.CurrentUser)
+                        ).GetAwaiter().GetResult();
                     // once the write operationtakes place restore the HasStateChanged bit to filse
                     args.TokenCache.HasStateChanged = false;
                 }

@@ -13,17 +13,39 @@ namespace LobAccelerator.Library.Utils
     public static class StorageHelper
     {
         /// <summary>
+        /// Check if the blob exists
+        /// </summary>
+        /// <param name="containerName"></param>
+        /// <param name="blobName"></param>
+        /// <returns></returns>
+        public static async Task<bool> BlobExistsAsync(string containerName, string blobName)
+        {
+            try
+            {
+                var container = await GetContainerAsync(containerName);
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+                return await blockBlob.ExistsAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.ReadLine();
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Upload bytes as a blob to the passed in container
         /// </summary>
         /// <param name="container"></param>
         /// <param name="blobName"></param>
         /// <param name="blobData"></param>
         /// <returns></returns>
-        public static async Task<bool> UploadBlob(string containerName, string blobName, byte[] blobData)
+        public static async Task<bool> UploadBlobAsync(string containerName, string blobName, byte[] blobData)
         {
             try
             {
-                var container = await GetContainer(containerName);
+                var container = await GetContainerAsync(containerName);
 
                 // Upload a BlockBlob to the newly created container
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
@@ -45,23 +67,30 @@ namespace LobAccelerator.Library.Utils
         /// <param name="container"></param>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        public static async Task<bool> DownloadBlob(string containerName, string blobName, string writeFile)
+        public static async Task<byte[]> DownloadBlobAsync(string containerName, string blobName)
         {
             try
             {
-                var container = await GetContainer(containerName);
+                var container = await GetContainerAsync(containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
-                await blockBlob.DownloadToFileAsync(writeFile, FileMode.Create);
+
+                var blobData = new byte[blockBlob.Properties.Length];
+                var downloadedSize = await blockBlob.DownloadToByteArrayAsync(blobData, 0);
+
+                if (blockBlob.Properties.Length != downloadedSize)
+                {
+                    // TODO error check here?
+                }
+
+                return blobData;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Console.ReadLine();
-                return false;
+                return new byte[0];
             }
-
-            return true;
         }
 
         /// <summary>
@@ -70,11 +99,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="container"></param>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        public static async Task<bool> DeleteBlob(string containerName, string blobName)
+        public static async Task<bool> DeleteBlobAsync(string containerName, string blobName)
         {
             try
             {
-                var container = await GetContainer(containerName);
+                var container = await GetContainerAsync(containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
                 await blockBlob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, null, null);
@@ -119,7 +148,7 @@ namespace LobAccelerator.Library.Utils
         /// </summary>
         /// <param name="containerName"></param>
         /// <returns></returns>
-        private static async Task<CloudBlobContainer> GetContainer(string containerName)
+        private static async Task<CloudBlobContainer> GetContainerAsync(string containerName)
         {
             // Get account using sas token
             var sasToken = GetAccountSASToken();
