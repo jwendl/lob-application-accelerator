@@ -1,5 +1,6 @@
 ﻿using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
+using System;
 using System.Linq;
 
 namespace LobAccelerator.Library.Validators
@@ -7,12 +8,12 @@ namespace LobAccelerator.Library.Validators
     public class TeamsInputValidator
     {
 
-        public bool Validate(TeamsInput ti, bool hastoken)
+        public bool Validate(TeamsJsonConfiguration ti, bool hastoken)
         {
             return Validate(ti, hastoken, out var dummy);
         }
 
-        public bool Validate(TeamsInput ti, bool hastoken, out TeamsInputValidation validation)
+        public bool Validate(TeamsJsonConfiguration ti, bool hastoken, out TeamsInputValidation validation)
         {
             var rta = true;
             validation = new TeamsInputValidation();
@@ -46,9 +47,32 @@ namespace LobAccelerator.Library.Validators
                 }
                 else
                 {
-                    rta = ValidateChannels(ti, ref validation);
+                    rta = ValidateDuplicateUsersOnTeam(ti, ref validation);
+
+                    if (rta)
+                    {
+                        rta = ValidateChannels(ti, ref validation);
+                    }
                 }
 
+            }
+
+            return rta;
+        }
+
+        private bool ValidateDuplicateUsersOnTeam(TeamsJsonConfiguration ti, ref TeamsInputValidation validation)
+        {
+            var rta = true;
+            var duplicates = (from member in ti.Members
+                              group member by member
+                             into grpmember
+                              where grpmember.Count() > 1
+                              select true).Any();
+
+            if (duplicates)
+            {
+                rta = false;
+                validation = TeamsInputValidation.DuplicatedUsersOnTeam;
             }
 
             return rta;
@@ -84,6 +108,12 @@ namespace LobAccelerator.Library.Validators
                 case TeamsInputValidation.NoAuthToken:
                     verbose = "This function requires an Authorization header in the request";
                     break;
+                case TeamsInputValidation.DuplicatedUsersOnTeam:
+                    verbose = "The team includes duplicated users";
+                    break;
+                case TeamsInputValidation.DuplicatedUsersOnChannel:
+                    verbose = "Some channels include duplicated users";
+                    break;
                 default:
                     verbose = "OK";
                     break;
@@ -92,7 +122,7 @@ namespace LobAccelerator.Library.Validators
             return verbose;
         }
 
-        private bool ValidateChannels(TeamsInput ti, ref TeamsInputValidation validation)
+        private bool ValidateChannels(TeamsJsonConfiguration ti, ref TeamsInputValidation validation)
         {
             bool rta = true;
             foreach (var channel in ti.Channels)
@@ -110,13 +140,40 @@ namespace LobAccelerator.Library.Validators
                     {
                         break;
                     }
+                    else
+                    {
+                        rta = ValidateDuplicatedusersOnChannel(channel, ref validation);
+                        if (!rta)
+                        {
+                            break;
+                        }
+                    }
                 }
             }
 
             return rta;
         }
 
-        private bool ValidateChannelMembers(TeamsInput ti, ChannelInput channel, ref TeamsInputValidation validation)
+        private bool ValidateDuplicatedusersOnChannel(ChannelJsonConfiguration channel, 
+            ref TeamsInputValidation validation)
+        {
+            var rta = true;
+            var duplicates = (from member in channel.Members
+                             group member by member
+                             into grpmember
+                             where grpmember.Count() > 1
+                             select true).Any();
+
+            if (duplicates)
+            {
+                rta = false;
+                validation = TeamsInputValidation.DuplicatedUsersOnChannel;
+            }
+
+            return rta;
+        }
+
+        private bool ValidateChannelMembers(TeamsJsonConfiguration ti, ChannelJsonConfiguration channel, ref TeamsInputValidation validation)
         {
             var rta = true;
             var matches = from cmember in channel.Members
