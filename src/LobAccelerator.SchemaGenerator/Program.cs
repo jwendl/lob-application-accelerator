@@ -52,9 +52,9 @@ namespace LobAccelerator.SchemaGenerator
                             AllowGiphy = true,
                             GiphyContentRating = "strict",
                         },
-                        Channels = new List<Channel>()
+                        Channels = new List<ChannelResource>()
                         {
-                            new Channel()
+                            new ChannelResource
                             {
                                 DisplayName = "New Teams Channel",
                                 Description = "A new channel for the teams team."
