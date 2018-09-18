@@ -8,6 +8,6 @@ namespace LobAccelerator.Library.Models
     public class Workflow
     {
         [JsonProperty("teams")]
-        public IEnumerable<Team> Teams { get; set; }
+        public IEnumerable<TeamResource> Teams { get; set; }
     }
 }

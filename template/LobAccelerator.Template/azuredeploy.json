@@ -1,8 +1,131 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [],
+  "parameters": {
+    "functionsApiAppName": {
+      "type": "string",
+      "minLength": 3
+    },
+    "sourceCodeUri": {
+      "type": "string",
+      "minLength": 3
+    },
+    "sourceCodeBranch": {
+      "type": "string",
+      "defaultValue": "master"
+    },
+    "isManualIntegration": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Please see https://docs.microsoft.com/en-us/azure/app-service/app-service-deploy-complex-application-predictably"
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat(parameters('functionsApiAppName'), 'storage')]",
+    "applicationInsightsName": "[concat(parameters('functionsApiAppName'), 'ai')]",
+    "functionsAppServicePlanName": "[concat(parameters('functionsApiAppName'), 'fnasp')]",
+    "storageAccountType": "Standard_LRS",
+    "applicationInsightsLocation": "westus2",
+    "functionsResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Web/sites', parameters('functionsApiAppName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "2016-01-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[variables('storageAccountType')]"
+      },
+      "kind": "Storage",
+      "properties": {}
+    },
+    {
+      "name": "[variables('applicationInsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2014-04-01",
+      "location": "[variables('applicationInsightsLocation')]",
+      "kind": "other",
+      "properties": {
+        "applicationId": "[variables('applicationInsightsName')]"
+      }
+    },
+    {
+      "name": "[variables('functionsAppServicePlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-09-01",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic",
+        "size": "Y1",
+        "family": "Y",
+        "capacity": 0
+      },
+      "kind": "functionapp",
+      "properties": {
+        "workerTierName": null,
+        "adminSiteName": null,
+        "hostingEnvironmentProfile": null,
+        "perSiteScaling": false,
+        "reserved": false,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      }
+    },
+    {
+      "name": "[parameters('functionsApiAppName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-02-01",
+      "kind": "functionapp",
+      "properties": {
+        "enabled": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionsAppServicePlanName'))]",
+        "reserved": false
+      },
+      "identity": {
+        "type": "systemAssigned"
+      },
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2014-11-01",
+          "properties": {
+            "FUNCTIONS_EXTENSION_VERSION": "beta",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]",
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountName'),'2015-05-01-preview').key1)]",
+            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountName'),'2015-05-01-preview').key1)]",
+            "DurableTaskStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountName'),'2015-05-01-preview').key1)]"
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', parameters('functionsApiAppName'))]",
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', parameters('functionsApiAppName'), 'web')]",
+            "[resourceId('Microsoft.Insights/components', variables('applicationInsightsName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          ]
+        },
+        {
+          "apiVersion": "2016-08-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites/', parameters('functionsApiAppName'))]"
+          ],
+          "properties": {
+            "RepoUrl": "[parameters('sourceCodeUri')]",
+            "branch": "[parameters('sourceCodeBranch')]",
+            "IsManualIntegration": "[parameters('isManualIntegration')]"
+          }
+        }
+      ],
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('functionsAppServicePlanName'))]"
+      ]
+    }
+  ],
   "outputs": {}
 }

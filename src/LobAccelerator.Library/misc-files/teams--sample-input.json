@@ -1,27 +1,27 @@
 {
-  "team-name": "My MS Teams Group",
-  "team-description": "My MS Teams Group Description",
-  "team-members": [
+  "Name": "My MS Teams Group",
+  "Description": "My MS Teams Group Description",
+  "Members": [
     "juanr@microsoft.com",
     "juswen@microsoft.com",
     "tedistef@microsoft.com",
     "altagin@microsoft.com"
   ],
-  "team-channels": [
+  "Channels": [
     {
-      "channel-name": "my channel one",
-      "channel-description": "my channel one description",
-      "channel-files-azstorage-folder": "/team-files/",
-      "channel-members": [
+      "Name": "my channel one",
+      "Description": "my channel one description",
+      "FilesAzstorageFolder": "/team-files/",
+      "Members": [
         "juanr@microsoft.com",
         "juswen@microsoft.com"
       ]
     },
     {
-      "channel-name": "my channel two",
-      "channel-description": "my channel two description",
-      "channel-files-azstorage-folder": "/team-files-alt/",
-      "channel-members": [
+      "Name": "my channel two",
+      "Description": "my channel two description",
+      "FilesAzstorageFolder": "/team-files-alt/",
+      "Members": [
         "tedistef@microsoft.com",
         "juswen@microsoft.com",
         "andrg@microsoft.com",
