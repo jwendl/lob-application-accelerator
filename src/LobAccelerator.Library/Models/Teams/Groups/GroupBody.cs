@@ -5,7 +5,7 @@ using System.ComponentModel;
 namespace LobAccelerator.Library.Models.Teams.Groups
 {
     [JsonObject("groupContent")]
-    public class GroupContent
+    public class GroupBody
     {
         [JsonProperty("description")]
         [Description("Group description")]

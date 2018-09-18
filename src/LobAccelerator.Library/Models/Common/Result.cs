@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LobAccelerator.Library.Models.Common
+﻿namespace LobAccelerator.Library.Models.Common
 {
-    public class Result
+    public class Result<T>
     {
-        public object Value { get; set; }
+        public T Value { get; set; }
         public bool HasError { get; set; } = false;
-        public string ErrorMessage { get; set; } = string.Empty;
+        public string Error { get; set; } = string.Empty;
+        public string DetailedError { get; set; } = string.Empty;
     }
 }
