@@ -1,15 +1,11 @@
 ﻿using LobAccelerator.Library.Extensions;
 using LobAccelerator.Library.Interfaces;
-using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Models.Teams.Groups;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
@@ -25,17 +21,11 @@ namespace LobAccelerator.Library.Managers
             _apiVersion = ConstantsExtension.TeamsApiVersion;
         }
 
-        public async Task CreateResourceAsync(Team resource)
+        public async Task<IResult> CreateResourceAsync(Team resource)
         {
             Result<Group> group = await CreateGroupAsync(resource);
-
-            if (group.HasError)
-            {
-                return;
-            }
             
-
-            throw new NotImplementedException();
+            return Result.Combine(group);
         }
 
         /// <summary>
