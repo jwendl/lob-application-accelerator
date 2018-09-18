@@ -29,7 +29,7 @@ namespace LobAccelerator.Library.Tests
                 {
                     new TeamResource()
                     {
-                        DisplayName = "New Teams Team",
+                        DisplayName = "New Teams Team 220",
                         Description = "This is a team for teams.",
                         MailNickname = "group",
                         Members = new List<string>()
@@ -55,7 +55,7 @@ namespace LobAccelerator.Library.Tests
                         {
                             new ChannelResource
                             {
-                                DisplayName = "New Teams Channel",
+                                DisplayName = "New Teams Channel 2",
                                 Description = "A new channel for the teams team."
                             }
                         }
@@ -112,7 +112,8 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync("Group.ReadWrite.All");
+            var scopes = new string[] { "Group.ReadWrite.All" };
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;
         }

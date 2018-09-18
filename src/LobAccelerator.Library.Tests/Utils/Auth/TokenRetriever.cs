@@ -14,6 +14,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 {
     public class TokenRetriever
     {
+        private readonly string tenantId;
         private readonly string username;
         private readonly string password;
         private readonly string clientId;
@@ -25,6 +26,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
+            tenantId = configuration["AzureAd:TenantId"];
             username = configuration["AzureAd:Username"];
             password = configuration["AzureAd:Password"];
             clientId = configuration["AzureAd:ClientId"];
@@ -48,14 +50,16 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<string> GetAuthorizationCode(string scopes)
         {
-            const string authorizeUrl = "https://login.microsoftonline.com/common/oauth2/authorize";
+            string authorizeUrl = 
+                string.Format("https://login.microsoftonline.com/{0}/oauth2/authorize",
+                    tenantId);
 
             string[] parameters = {
                 "response_type=code",
                 $"client_id={clientId}",
                 $"redirect_uri={redirectUri}",
                 $"resource={resource}",
-                "scope="
+                $"scope=api://{clientId}/access_as_user"
             };
 
             string returnUrl = await LoginAndGetAuthCode(authorizeUrl, parameters);
@@ -98,14 +102,16 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<AzureAdToken> GetToken(string authorizationCode, string scopes)
         {
-            const string url = "https://login.microsoftonline.com/common/oauth2/token";
+            string tokenUrl = 
+                string.Format("https://login.microsoftonline.com/{0}/oauth2/token",
+                    tenantId);
 
             using (var httpClient = new HttpClient())
             {
                 var bodyPairs = BuildBodyForTokenRequest(authorizationCode, scopes);
                 var body = new FormUrlEncodedContent(bodyPairs);
 
-                var response = await httpClient.PostAsync(url, body);
+                var response = await httpClient.PostAsync(tokenUrl, body);
                 response.EnsureSuccessStatusCode();
 
                 var responseStr = await response.Content.ReadAsStringAsync();
