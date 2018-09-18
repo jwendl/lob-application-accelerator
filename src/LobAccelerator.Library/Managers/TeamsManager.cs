@@ -6,6 +6,8 @@ using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
 using LobAccelerator.Library.Models.Teams.Teams;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,6 +18,7 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly HttpClient httpClient;
         private readonly string _apiVersion;
+        private HttpResponseMessage responseDeletePerm;
 
         public TeamsManager(HttpClient httpClient)
         {
@@ -144,6 +147,34 @@ namespace LobAccelerator.Library.Managers
 
                 response.EnsureSuccessStatusCode();
             }
+        }
+
+        public async Task<string> SearchTeamAsync(string displayName)
+        {
+            var listTeams = $"beta/groups?$filter=displayName eq '{displayName}'&$select=id";
+
+            var response = await httpClient.GetAsync(listTeams);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var contentObj = JObject.Parse(content);
+
+            return contentObj["value"][0]["id"].Value<string>();
+        }
+
+        public async Task<Result<NoneResult>> DeleteChannelAsync(string groupId)
+        {
+            var result = new Result<NoneResult>();
+            var deleteUri = $"{_apiVersion}/groups/{groupId}";
+            var deletePermanentUri = $"{_apiVersion}/directory/deleteditems/microsoft.graph.group/{groupId}";
+
+            var responseDelete = await httpClient.DeleteAsync(deleteUri);
+            responseDelete.EnsureSuccessStatusCode();
+
+            var responseDeletePerm = await httpClient.DeleteAsync(deletePermanentUri);
+            responseDeletePerm.EnsureSuccessStatusCode();
+
+            return result;
         }
 
         private class CreateChannelGraphObject

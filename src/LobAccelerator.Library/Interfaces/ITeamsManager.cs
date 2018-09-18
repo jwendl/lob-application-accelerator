@@ -8,7 +8,7 @@ namespace LobAccelerator.Library.Interfaces
 {
     public interface ITeamsManager : IResourceManager<TeamResource>
     {
-        Task<IResult> CreateResourceAsync(TeamResource resource);
         Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId);
+        Task<Result<NoneResult>> DeleteChannelAsync(string groupId);
     }
 }
