@@ -1,7 +1,10 @@
-﻿using LobAccelerator.Library.Interfaces;
+﻿using LobAccelerator.Library.Factories;
+using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models.Common;
 using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
@@ -11,9 +14,22 @@ namespace LobAccelerator.Manager.Library
     {
         private readonly ITeamsManager teamsManager;
 
-        public WorkflowManager() // AuthenticationHeaderValue authenticationHeaderValue)
+        public WorkflowManager(string accessToken)
         {
-            teamsManager = new TeamsManager();
+            var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
+            teamsManager = new TeamsManager(httpClient);
+        }
+
+        private HttpClient CreateHttpClient(string baseUrl, string accessToken)
+        {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(baseUrl)
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
+
+            return client;
         }
 
         public async Task CreateResourceAsync(Workflow resource)
