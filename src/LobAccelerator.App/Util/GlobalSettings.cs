@@ -1,4 +1,4 @@
-﻿namespace LobAccelerator.App
+﻿namespace LobAccelerator.App.Util
 {
     public static class GlobalSettings
     {
