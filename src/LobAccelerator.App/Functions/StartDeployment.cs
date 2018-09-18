@@ -6,32 +6,33 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LobAccelerator.App;
+using static LobAccelerator.App.Util.GlobalSettings;
 
-namespace LobAccelerator.App
+namespace LobAccelerator.App.Functions
 {
     public static class StartDeployment
     {
-        const string TABLE_NAME = "parameters";
-        const string PARTITION_KEY = "Authorization";
-        const string TOKEN_ROW = "refresh-token";
-
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
             HttpRequest req,
-            [Table(TABLE_NAME, PARTITION_KEY, TOKEN_ROW)]
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
             Parameter parameter,
-            [Table(TABLE_NAME, PARTITION_KEY)]
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY)]
             IAsyncCollector<Parameter> tokenParameters,
+            [Queue(REQUEST_QUEUE)]
+            CloudQueue  queue,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var teamConfig = JsonConvert.DeserializeObject<TeamsInput>(requestBody);
+            var teamConfig = JsonConvert.DeserializeObject<TeamsJsonConfiguration>(requestBody);
 
             var hasToken = req.Headers.TryGetValue("Authorization", out var authTokenInfo);
             var authToken = authTokenInfo.FirstOrDefault();
@@ -43,8 +44,10 @@ namespace LobAccelerator.App
             //validated implies hasToken
             if (validated)
             {
-                var refreshToken = ConvertAccessTokenToRefreshToken(parameter.Value);
+                var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
                 parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
+
+                await queue.AddMessageAsync(new CloudQueueMessage(requestBody));
             }
 
             return validated
@@ -52,14 +55,14 @@ namespace LobAccelerator.App
                 : new BadRequestObjectResult($"Invalid HttpRequest, reason: {verbose}");
         }
 
-        private static string ConvertAccessTokenToRefreshToken(string value)
+        private static string ConvertAccessTokenToRefreshToken(Parameter acessToken)
         {
             return "NOT IMPLEMENTED YET";
         }
 
         private static async Task<Parameter> CreateOrUpdateTokenParameter(
-            Parameter parameter, 
-            IAsyncCollector<Parameter> tokenParameters, 
+            Parameter parameter,
+            IAsyncCollector<Parameter> tokenParameters,
             string authToken)
         {
             if (parameter != null)
@@ -70,8 +73,8 @@ namespace LobAccelerator.App
             {
                 parameter = new Parameter
                 {
-                    PartitionKey = PARTITION_KEY,
-                    RowKey = TOKEN_ROW,
+                    PartitionKey = PARAM_PARTITION_KEY,
+                    RowKey = PARAM_TOKEN_ROW,
                     Value = authToken
                 };
 
