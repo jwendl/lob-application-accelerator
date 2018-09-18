@@ -29,7 +29,7 @@ namespace LobAccelerator.Library.Tests
                 {
                     new TeamResource()
                     {
-                        DisplayName = "New Teams Team",
+                        DisplayName = "New Teams Team!!!",
                         Description = "This is a team for teams.",
                         MailNickname = "group",
                         Members = new List<string>()
@@ -96,6 +96,23 @@ namespace LobAccelerator.Library.Tests
         }
 
         [Fact]
+        public async Task AddNewChannels()
+        {
+            //Arrange
+            var team = Workflow.Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var channelsResult = await teamsManager.CreateChannelsAsync(teamResult.Value.Id, team.Channels);
+
+            //Assert
+            Assert.False(channelsResult.HasError());
+        }
+        
+        [Fact]
         public async Task AddPeopleToChannel()
         {
             //Arrange
@@ -108,6 +125,21 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.AddPeopleToChannelAsync(members, teamId);
 
             //Assert
+        }
+
+        [Fact]
+        public async Task AddAllResources()
+        {
+            //Arrange
+            var team = Workflow.Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var result = await teamsManager.CreateResourceAsync(team);
+
+            //Assert
+            Assert.False(result.HasError());
         }
 
         private async Task<HttpClient> GetHttpClient()
