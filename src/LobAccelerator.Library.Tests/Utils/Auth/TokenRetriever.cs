@@ -22,6 +22,8 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private readonly string redirectUri;
         private readonly string resource;
 
+        private Dictionary<string, AzureAdToken> TokenCaching { get; set; }
+
         public TokenRetriever(IConfiguration configuration)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
@@ -33,6 +35,8 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             clientSecret = configuration["AzureAd:ClientSecret"];
             redirectUri = configuration["AzureAd:RedirectUri"];
             resource = configuration["AzureAd:Resource"];
+
+            TokenCaching = new Dictionary<string, AzureAdToken>();
         }
 
         public async Task<AzureAdToken> GetTokenByAuthorizationCodeFlowAsync(params string[] desiredScopes)
@@ -42,10 +46,15 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
             string scopes = ConcatScopes(desiredScopes);
 
-            string authorizationCode = await GetAuthorizationCode(scopes);
-            AzureAdToken token = await GetToken(authorizationCode, scopes);
+            if (!TokenCaching.ContainsKey(scopes))
+            {
+                string authorizationCode = await GetAuthorizationCode(scopes);
+                AzureAdToken token = await GetToken(authorizationCode, scopes);
 
-            return token;
+                TokenCaching.Add(scopes, token);
+            }
+
+            return TokenCaching[scopes];
         }
 
         private async Task<string> GetAuthorizationCode(string scopes)
