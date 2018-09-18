@@ -75,6 +75,10 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(result.HasError);
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
@@ -92,6 +96,10 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(teamResult.HasError);
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
@@ -110,6 +118,10 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(channelsResult.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
@@ -128,6 +140,11 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.AddPeopleToChannelAsync(members, teamId);
 
             //Assert
+
+
+            //Teardown
+            //var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            //await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
@@ -152,7 +169,8 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync("Group.ReadWrite.All");
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
+                "Group.ReadWrite.All", "Directory.AccessAsUser.All");
             var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;
         }
