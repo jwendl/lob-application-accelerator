@@ -2,6 +2,7 @@
 using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Teams;
+using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
 using LobAccelerator.Library.Models.Teams.Teams;
 using Newtonsoft.Json;
@@ -25,7 +26,8 @@ namespace LobAccelerator.Library.Managers
         public async Task<IResult> CreateResourceAsync(TeamResource resource)
         {
             Result<Group> group = await CreateGroupAsync(resource);
-            Result<Team> team = await CreateTeam(group.Value.Id, resource);
+            Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
+            IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
             
             return Result.Combine(group, team);
         }
@@ -69,7 +71,7 @@ namespace LobAccelerator.Library.Managers
         /// Creates a new Team to an existing group.
         /// </summary>
         /// <returns></returns>
-        public async Task<Result<Team>> CreateTeam(string groupId, TeamResource resource)
+        public async Task<Result<Team>> CreateTeamAsync(string groupId, TeamResource resource)
         {
             var result = new Result<Team>();
             var uri = $"{_apiVersion}/groups/{groupId}/team";
@@ -97,6 +99,39 @@ namespace LobAccelerator.Library.Managers
             return result;
         }
 
+        /// <summary>
+        /// Create channels under a team.
+        /// </summary>
+        /// <param name="teamsId">Team ID</param>
+        /// <param name="channels">List of channels to be added</param>
+        /// <returns></returns>
+        public async Task<IResult> CreateChannelsAsync(string teamsId, IEnumerable<ChannelResource> channels)
+        {
+            var results = new List<Result<Channel>>();
+            var uri = $"{_apiVersion}/teams/{teamsId}/channels";
+
+            foreach(var channel in channels)
+            {
+                var result = new Result<Channel>();
+                var response = await httpClient.PutContentAsync(uri, channel);
+                var responseString = await response.Content.ReadAsStringAsync();
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
+                }
+                else
+                {
+                    result.HasError = true;
+                    result.Error = response.ReasonPhrase;
+                    result.DetailedError = responseString;
+                }
+
+                results.Add(result);
+            }
+
+            return Result.Combine(results);
+        }
 
         public async Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
         {

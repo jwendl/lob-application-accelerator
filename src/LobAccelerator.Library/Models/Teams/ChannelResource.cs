@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace LobAccelerator.Library.Models.Teams
 {
     [JsonObject("channel")]
-    public class Channel
+    public class ChannelResource
     {
         [JsonProperty("displayName")]
         [Description("The display name of the channel.")]

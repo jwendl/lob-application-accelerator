@@ -51,9 +51,9 @@ namespace LobAccelerator.Library.Tests
                             AllowGiphy = true,
                             GiphyContentRating = "strict",
                         },
-                        Channels = new List<Channel>()
+                        Channels = new List<ChannelResource>()
                         {
-                            new Channel()
+                            new ChannelResource
                             {
                                 DisplayName = "New Teams Channel",
                                 Description = "A new channel for the teams team."
@@ -89,7 +89,7 @@ namespace LobAccelerator.Library.Tests
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
-            var teamResult = await teamsManager.CreateTeam(groupResult.Value.Id, team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
 
             //Assert
             Assert.False(teamResult.HasError);
