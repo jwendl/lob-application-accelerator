@@ -29,7 +29,7 @@ namespace LobAccelerator.Library.Managers
             Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
             IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
             
-            return Result.Combine(group, team);
+            return Result.Combine(group, team, channels);
         }
 
         /// <summary>
@@ -105,15 +105,15 @@ namespace LobAccelerator.Library.Managers
         /// <param name="teamsId">Team ID</param>
         /// <param name="channels">List of channels to be added</param>
         /// <returns></returns>
-        public async Task<IResult> CreateChannelsAsync(string teamsId, IEnumerable<ChannelResource> channels)
+        public async Task<IResult> CreateChannelsAsync(string teamId, IEnumerable<ChannelResource> channels)
         {
             var results = new List<Result<Channel>>();
-            var uri = $"{_apiVersion}/teams/{teamsId}/channels";
+            var uri = $"{_apiVersion}/teams/{teamId}/channels";
 
             foreach(var channel in channels)
             {
                 var result = new Result<Channel>();
-                var response = await httpClient.PutContentAsync(uri, channel);
+                var response = await httpClient.PostContentAsync(uri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
                 
                 if (response.IsSuccessStatusCode)
