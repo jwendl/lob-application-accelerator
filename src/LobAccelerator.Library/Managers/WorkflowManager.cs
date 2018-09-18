@@ -25,5 +25,10 @@ namespace LobAccelerator.Manager.Library
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
         }
+
+        Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
