@@ -52,7 +52,7 @@ namespace LobAccelerator.Library.Tests
                         {
                             new ChannelResource
                             {
-                                DisplayName = "New Teams Channel",
+                                DisplayName = "New Teams Channel 2",
                                 Description = "A new channel for the teams team."
                             }
                         }
