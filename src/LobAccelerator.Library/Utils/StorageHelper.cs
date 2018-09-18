@@ -18,11 +18,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="containerName"></param>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        public static async Task<bool> BlobExistsAsync(string containerName, string blobName)
+        public static async Task<bool> BlobExistsAsync(string connectionString, string containerName, string blobName)
         {
             try
             {
-                var container = await GetContainerAsync(containerName);
+                var container = await GetContainerAsync(connectionString, containerName);
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
                 return await blockBlob.ExistsAsync();
             }
@@ -41,11 +41,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="blobName"></param>
         /// <param name="blobData"></param>
         /// <returns></returns>
-        public static async Task<bool> UploadBlobAsync(string containerName, string blobName, byte[] blobData)
+        public static async Task<bool> UploadBlobAsync(string connectionString, string containerName, string blobName, byte[] blobData)
         {
             try
             {
-                var container = await GetContainerAsync(containerName);
+                var container = await GetContainerAsync(connectionString, containerName);
 
                 // Upload a BlockBlob to the newly created container
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
@@ -67,11 +67,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="container"></param>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        public static async Task<byte[]> DownloadBlobAsync(string containerName, string blobName)
+        public static async Task<byte[]> DownloadBlobAsync(string connectionString, string containerName, string blobName)
         {
             try
             {
-                var container = await GetContainerAsync(containerName);
+                var container = await GetContainerAsync(connectionString, containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
 
@@ -99,11 +99,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="container"></param>
         /// <param name="blobName"></param>
         /// <returns></returns>
-        public static async Task<bool> DeleteBlobAsync(string containerName, string blobName)
+        public static async Task<bool> DeleteBlobAsync(string connectionString, string containerName, string blobName)
         {
             try
             {
-                var container = await GetContainerAsync(containerName);
+                var container = await GetContainerAsync(connectionString, containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
                 await blockBlob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, null, null, null);
@@ -118,14 +118,14 @@ namespace LobAccelerator.Library.Utils
             return true;
         }
 
-        private static CloudStorageAccount CreateStorageAccountFromConnectionString()
+        private static CloudStorageAccount CreateStorageAccountFromConnectionString(string connectionString)
         {
             CloudStorageAccount storageAccount;
             const string errorMessage = "Invalid storage account information provided. Please confirm the AccountName and AccountKey are valid in the app.config file - then restart the sample.";
 
             try
             {
-                storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
+                storageAccount = CloudStorageAccount.Parse(connectionString);
             }
             catch (FormatException)
             {
@@ -148,14 +148,14 @@ namespace LobAccelerator.Library.Utils
         /// </summary>
         /// <param name="containerName"></param>
         /// <returns></returns>
-        private static async Task<CloudBlobContainer> GetContainerAsync(string containerName)
+        private static async Task<CloudBlobContainer> GetContainerAsync(string connectionString, string containerName)
         {
             // Get account using sas token
-            var sasToken = GetAccountSASToken();
+            var sasToken = GetAccountSASToken(connectionString);
             StorageCredentials accountSAS = new StorageCredentials(sasToken);
 
             // create the storage container if necessary
-            Uri containerUri = GetContainerUri(containerName);
+            Uri containerUri = GetContainerUri(connectionString, containerName);
             CloudBlobContainer container = new CloudBlobContainer(containerUri, accountSAS);
             try
             {
@@ -172,10 +172,10 @@ namespace LobAccelerator.Library.Utils
             return container;
         }
 
-        private static string GetAccountSASToken()
+        private static string GetAccountSASToken(string connectionString)
         {
             // Retrieve storage account information from connection string
-            CloudStorageAccount storageAccount = CreateStorageAccountFromConnectionString();
+            CloudStorageAccount storageAccount = CreateStorageAccountFromConnectionString(connectionString);
             
             SharedAccessAccountPolicy policy = new SharedAccessAccountPolicy()
             {
@@ -195,10 +195,10 @@ namespace LobAccelerator.Library.Utils
             return sasToken;
         }
 
-        private static Uri GetContainerUri(string containerName)
+        private static Uri GetContainerUri(string connectionString, string containerName)
         {
             // Retrieve storage account information from connection string
-            CloudStorageAccount storageAccount = CreateStorageAccountFromConnectionString();
+            CloudStorageAccount storageAccount = CreateStorageAccountFromConnectionString(connectionString);
 
             return storageAccount.CreateCloudBlobClient().GetContainerReference(containerName).Uri;
         }

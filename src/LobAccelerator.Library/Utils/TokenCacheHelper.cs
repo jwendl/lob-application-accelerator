@@ -43,11 +43,13 @@ namespace LobAccelerator.Library.Utils
             {
                 args.TokenCache.Deserialize(
                     StorageHelper.BlobExistsAsync(
-                            ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                            ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                        ConfigurationManager.AppSettings["StorageConnectionString"],
+                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
+                        ConfigurationManager.AppSettings["TokenCacheBlobName"])
                         .GetAwaiter().GetResult() //task.wait (s)
                     ? ProtectedData.Unprotect(
                         StorageHelper.DownloadBlobAsync(
+                            ConfigurationManager.AppSettings["StorageConnectionString"],
                             ConfigurationManager.AppSettings["TokenCacheContainerName"],
                             ConfigurationManager.AppSettings["TokenCacheBlobName"])
                         .GetAwaiter().GetResult(),
@@ -66,6 +68,7 @@ namespace LobAccelerator.Library.Utils
                 {
                     // reflect changes in the persistent store
                     StorageHelper.UploadBlobAsync(
+                        ConfigurationManager.AppSettings["StorageConnectionString"],
                         ConfigurationManager.AppSettings["TokenCacheContainerName"],
                         ConfigurationManager.AppSettings["TokenCacheBlobName"],
                         ProtectedData.Protect(args.TokenCache.Serialize(),
