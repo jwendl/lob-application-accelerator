@@ -34,9 +34,7 @@ namespace LobAccelerator.Library.Tests
             Assert.Equal("Bearer", token.token_type);
             Assert.True(int.Parse(token.expires_in) > 3500);
             Assert.NotEmpty(returnedScopes);
-            // returnedScopes = "Group.ReadWrite.All", "offline_access", "openid", "Sites.ReadWrite.All", "User.Read"
-            // will not contain $"api://{configuration["AzureAd:ClientId"]}/access_as_user"
-            Assert.True(intersectionOfScopes.Count() == (scopes.Count() - 1));
+            Assert.True(intersectionOfScopes.Count() == scopes.Count());
             Assert.Equal(configuration["AzureAd:Resource"], token.resource);
         }
 
@@ -54,7 +52,7 @@ namespace LobAccelerator.Library.Tests
             //Act
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var header = new AuthenticationHeaderValue("Bearer", token.access_token);
-            var validation = await AuthHelper.ValidateTokenAsync(header, expectedIssuer, expectedAudience, scopes);
+            //var validation = await AuthHelper.ValidateTokenAsync(header, expectedIssuer, expectedAudience, scopes);
 
             //Assert
             // We will only validate the On-behalf-of tokens...
