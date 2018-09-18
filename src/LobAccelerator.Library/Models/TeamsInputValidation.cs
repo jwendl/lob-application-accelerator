@@ -9,7 +9,9 @@
         TeamHasntChannels ,
         InvalidTeamsChannelName ,
         ChannelMembersDontMatchTeamsMembers,
-        NoAuthToken
+        NoAuthToken,
+        DuplicatedUsersOnTeam,
+        DuplicatedUsersOnChannel
     }
 
 }
