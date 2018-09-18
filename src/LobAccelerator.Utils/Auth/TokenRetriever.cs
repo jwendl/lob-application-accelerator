@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Firefox;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -11,24 +8,23 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LobAccelerator.Utils.Auth
+namespace LobAccelerator.TestingUtils.Auth
 {
-    public class TokenRetriever
+    public static class TokenRetriever
     {
-        public static async Task<string> GetAccessTokenByAuthorizationCode()
+        public static async Task<AzureAdToken> GetTokenByAuthorizationCodeFlow()
         {
             var authorizationCode = await GetAuthorizationCode();
-            var accessToken = await GetAccessToken(authorizationCode);
+            var token = await GetToken(authorizationCode);
 
-            return accessToken;
+            return token;
         }
 
         private static async Task<string> GetAuthorizationCode()
         {
-            IWebDriver driver = new ChromeDriver();
-
+            string username = "admin@jwazuread.onmicrosoft.com";
+            string password = "LOBhack!";
             string authorizeUrl = "https://login.microsoftonline.com/common/oauth2/authorize";
-
             string[] parameters = {
                 "response_type=code",
                 "client_id=398917db-d35d-4bd9-81cf-c3ff85c60e12",
@@ -37,40 +33,36 @@ namespace LobAccelerator.Utils.Auth
                 "scope=Group.ReadWrite.All"
             };
 
-            driver.Url = GetEndpointWithQueryParameters(authorizeUrl, parameters);
-
+            // Navigate to login page
+            IWebDriver driver = new ChromeDriver
+            {
+                Url = GetEndpointWithQueryParameters(authorizeUrl, parameters)
+            };
             await Task.Delay(1000);
 
-            IWebElement emailElement = driver.FindElement(By.Name("loginfmt"));
-            emailElement.SendKeys("admin@jwazuread.onmicrosoft.com");
-
-            IWebElement firstButtonElement = driver.FindElement(By.ClassName("btn-primary"));
-            firstButtonElement.Click();
-
+            // Login with username
+            driver.SendTextToTextBox("loginfmt", username);
+            driver.ClickOnButton("btn-primary");
             await Task.Delay(1000);
 
-            IWebElement passwordElement = driver.FindElement(By.Name("passwd"));
-            passwordElement.SendKeys("LOBhack!");
-
-            IWebElement secondButtonElement = driver.FindElement(By.ClassName("btn-primary"));
-            secondButtonElement.Click();
-
+            // Login with password
+            driver.SendTextToTextBox("passwd", password);
+            driver.ClickOnButton("btn-primary");
             await Task.Delay(1000);
 
-            IWebElement confirmationButtonElement = driver.FindElement(By.ClassName("btn-primary"));
-            confirmationButtonElement.Click();
+            // Confirms to store credentials
+            driver.ClickOnButton("btn-primary");
 
-            var regex = new Regex("code=(.*)&session_state=");
-            var match = regex.Match(driver.Url);
-
-            var authorizationCode = match.Groups[1].Value;
-
+            // Receive Authorization code
+            var returnUrl = driver.Url;
             driver.Close();
+
+            string authorizationCode = ExtractAuthorizationCodeFromReturn(returnUrl);
 
             return authorizationCode;
         }
 
-        private static async Task<string> GetAccessToken(string authorizationCode)
+        private static async Task<AzureAdToken> GetToken(string authorizationCode)
         {
             using (var httpClient = new HttpClient())
             {
@@ -90,13 +82,18 @@ namespace LobAccelerator.Utils.Auth
                 var body = new FormUrlEncodedContent(bodyPairs);
 
                 var response = await httpClient.PostAsync(url, body);
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var responseObj = JObject.Parse(responseContent);
+                var responseStr = await response.Content.ReadAsStringAsync();
 
-                var accessToken = responseObj["access_token"];
-
-                return accessToken.ToString();
+                return JsonConvert.DeserializeObject<AzureAdToken>(responseStr);
             }
+        }
+
+        private static string ExtractAuthorizationCodeFromReturn(string returnUrl)
+        {
+            var regex = new Regex("code=(.*)&session_state=");
+            var match = regex.Match(returnUrl);
+
+            return match.Groups[1].Value;
         }
 
         private static string GetEndpointWithQueryParameters(string url, string[] parameters)
