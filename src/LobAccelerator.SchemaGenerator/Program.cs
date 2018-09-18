@@ -26,9 +26,9 @@ namespace LobAccelerator.SchemaGenerator
 
             var exampleWorkflow = new Workflow()
             {
-                Teams = new List<Team>()
+                Teams = new List<TeamResource>()
                 {
-                    new Team()
+                    new TeamResource()
                     {
                         DisplayName = "New Teams Team",
                         Description = "This is a team for teams.",

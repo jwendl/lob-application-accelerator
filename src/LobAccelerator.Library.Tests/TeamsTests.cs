@@ -25,9 +25,9 @@ namespace LobAccelerator.Library.Tests
 
         public static Workflow Workflow => new Workflow()
         {
-            Teams = new List<Team>()
+            Teams = new List<TeamResource>()
                 {
-                    new Team()
+                    new TeamResource()
                     {
                         DisplayName = "New Teams Team",
                         Description = "This is a team for teams.",
@@ -77,6 +77,22 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(result.HasError);
+        }
+
+        [Fact]
+        public async Task AddNewTeam()
+        {
+            //Arrange
+            var team = Workflow.Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeam(groupResult.Value.Id, team);
+
+            //Assert
+            Assert.False(teamResult.HasError);
         }
 
         [Fact]
