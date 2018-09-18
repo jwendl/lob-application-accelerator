@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LobAccelerator.Library.Models.Common
@@ -36,6 +37,20 @@ namespace LobAccelerator.Library.Models.Common
             }
 
             var failedResults = results.Where(x => x.HasError()).ToList();
+
+            return failedResults.Any()
+                ? failedResults.First()
+                : results.First();
+        }
+
+        public static IResult Combine<T>(List<Result<T>> results)
+        {
+            if (!results.Any())
+            {
+                return new Result<NoneResult>();
+            }
+
+            var failedResults = results.Where(x => x.HasError).ToList();
 
             return failedResults.Any()
                 ? failedResults.First()
