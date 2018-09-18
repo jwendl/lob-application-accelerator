@@ -7,7 +7,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,14 +29,14 @@ namespace LobAccelerator.App
             IAsyncCollector<Parameter> tokenParameters,
             ILogger log)
         {
-            var validator = new TeamsInputValidator();
             log.LogInformation("C# HTTP trigger function processed a request.");
-
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var teamConfig = JsonConvert.DeserializeObject<TeamsInput>(requestBody);
 
             var hasToken = req.Headers.TryGetValue("Authorization", out var authTokenInfo);
             var authToken = authTokenInfo.FirstOrDefault();
+
+            var validator = new TeamsInputValidator();
             var validated = validator.Validate(teamConfig, hasToken, out var configvalidation);
             var verbose = validator.GetVerboseValitadion(configvalidation);
 
@@ -58,7 +57,10 @@ namespace LobAccelerator.App
             return "NOT IMPLEMENTED YET";
         }
 
-        private static async Task<Parameter> CreateOrUpdateTokenParameter(Parameter parameter, IAsyncCollector<Parameter> tokenParameters, string authToken)
+        private static async Task<Parameter> CreateOrUpdateTokenParameter(
+            Parameter parameter, 
+            IAsyncCollector<Parameter> tokenParameters, 
+            string authToken)
         {
             if (parameter != null)
             {
