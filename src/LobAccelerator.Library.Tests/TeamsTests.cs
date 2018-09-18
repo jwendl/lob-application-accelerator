@@ -18,7 +18,6 @@ namespace LobAccelerator.Library.Tests
         private static readonly TokenRetriever tokenRetriever
             = new TokenRetriever(new ConfigurationManager());
 
-
         public Workflow CreateWorkflow(int teamNumber)
         {
             return new Workflow
@@ -145,6 +144,10 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(result.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         private async Task<HttpClient> GetHttpClient()
