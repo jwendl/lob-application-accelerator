@@ -8,58 +8,36 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Client
 {
-    class Program
+    partial class Program
     {
         public const string resource = "https://graph.microsoft.com";
         public const string clientId = "398917db-d35d-4bd9-81cf-c3ff85c60e12";
-
-        class Options
-        {
-            [Option('r', "read", Required = true, HelpText = "Input files to be processed.")]
-            public IEnumerable<string> InputFiles { get; set; }
-
-            // Omitting long name, defaults to name of property, ie "--verbose"
-            [Option(
-              Default = false,
-              HelpText = "Prints all messages to standard output.")]
-            public bool Verbose { get; set; }
-
-            [Option("stdin",
-              Default = false,
-              HelpText = "Read from stdin")]
-            public bool stdin { get; set; }
-
-        }
 
         static void Main(string[] args)
         {
             try
             {
-                Console.WriteLine("Hello World!");
-
-                CommandLine.Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed<Options>(opts => RunOptionsAndReturnExitCode(opts))
-                    .WithNotParsed<Options>((errs) => HandleParseError(errs));
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(options => RunOptionsAndReturnExitCode(options))
+                    .WithNotParsed((erros) => HandleParseError(erros));
             }
             catch (Exception ex)
             {
                 DisplayErrorOnConsole(ex);
             }
 
+#if DEBUG
             Console.ReadLine();
+#endif
         }
 
-        private static void HandleParseError(IEnumerable<Error> errs)
+        private static void HandleParseError(IEnumerable<Error> errors)
         {
             throw new NotImplementedException();
         }
 
-        private static void RunOptionsAndReturnExitCode(Options opts)
+        private static void RunOptionsAndReturnExitCode(Options options)
         {
-            foreach (var item in opts.InputFiles)
-            {
-                Console.WriteLine(item);
-            }
 
             //var token = GetTokenViaCode().Result;
 
