@@ -26,10 +26,8 @@ namespace LobAccelerator.Library.Utils
         /// <param name="expectedScopes"></param>
         /// <param name="log"></param>
         /// <returns></returns>
-        static async Task<ClaimsPrincipal> ValidateToken(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log)
+        static async Task<ClaimsPrincipal> ValidateTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log)
         {
-            // 1) token is valid syntactically
-
             if (authenticationHeaderValue?.Scheme != "Bearer")
             {
                 throw new ArgumentException(string.Format("{0} is not supported", authenticationHeaderValue?.Scheme), "authenticationHeaderValue");
@@ -88,11 +86,5 @@ namespace LobAccelerator.Library.Utils
 
             return null;
         }
-
-        // 2) token's issuer matches expected
-
-        // 3) token's audience matches expected
-
-        // 4) token's scopes match expected (get them from cycling through the claims)
     }
 }
