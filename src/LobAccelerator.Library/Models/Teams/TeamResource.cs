@@ -5,7 +5,7 @@ using System.ComponentModel;
 namespace LobAccelerator.Library.Models.Teams
 {
     [JsonObject("team")]
-    public class Team
+    public class TeamResource
     {
         [JsonProperty("cloneFromId", NullValueHandling = NullValueHandling.Ignore)]
         [Description("The id of the team's page to clone from.")]
