@@ -41,6 +41,6 @@ namespace LobAccelerator.Library.Models.Teams
 
         [JsonProperty("channels")]
         [Description("Channels to add to this team.")]
-        public IEnumerable<Channel> Channels { get; set; }
+        public IEnumerable<ChannelResource> Channels { get; set; }
     }
 }
