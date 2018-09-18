@@ -50,11 +50,10 @@ namespace LobAccelerator.Library.Managers
             {
                 Description = resource.Description,
                 DisplayName = resource.DisplayName,
-                GroupTypes = new string[] { GroupTypes.Unified.ToString() },
-                MailEnabled = false,
+                GroupTypes = new List<string> { GroupTypes.Unified.ToString() },
+                MailEnabled = true,
                 MailNickname = resource.MailNickname,
-                SecurityEnabled = false,
-                Members = resource.Members
+                SecurityEnabled = false
             };
 
             var response = await httpClient.PostContentAsync(groupUri, requestContent);

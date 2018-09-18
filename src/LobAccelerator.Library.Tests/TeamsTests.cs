@@ -54,6 +54,21 @@ namespace LobAccelerator.Library.Tests
         };
 
         [Fact]
+        public async Task AddNewGroup()
+        {
+            //Arrange
+            var team = Workflow.Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var result = await teamsManager.CreateGroupAsync(team);
+
+            //Assert
+            Assert.False(result.HasError);
+        }
+
+        [Fact]
         public async Task AddPeopleToChannel()
         {
             //Arrange
