@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace LobAccelerator.App.Model
 {
+    /// <summary>
+    /// Team configuration intended to be used on Azure Storage
+    /// </summary>
     public class TeamsConfiguration : TableEntity
     {
         //PartitionKey: "TeamsTask"
@@ -12,7 +15,9 @@ namespace LobAccelerator.App.Model
         public string Description { get; set; }
     }
 
-
+    /// <summary>
+    /// Member configuration intended to be used on Azure Storage
+    /// </summary>
     public class MemeberConfiguration : TableEntity
     {
         //PartitionKey: TeamsConfiguration.RowKey
@@ -20,6 +25,9 @@ namespace LobAccelerator.App.Model
         public string Name { get; set; }
     }
 
+    /// <summary>
+    /// Channel configuration intended to be used on Azure Storage
+    /// </summary>
     public class ChannelConfiguration : TableEntity
     {
         //PartitionKey: TeamsConfiguration.RowKey
