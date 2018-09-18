@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LobAccelerator.Library\LobAccelerator.Library.csproj" />
+    <ProjectReference Include="..\LobAccelerator.Utils\LobAccelerator.Utils.csproj" />
   </ItemGroup>
 
 </Project>

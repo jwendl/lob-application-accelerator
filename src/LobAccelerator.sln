@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.App", "LobAc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.SchemaGenerator", "LobAccelerator.SchemaGenerator\LobAccelerator.SchemaGenerator.csproj", "{E78A87E9-B36C-4458-AA44-F210F309C976}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobAccelerator.Library", "LobAccelerator.Library\LobAccelerator.Library.csproj", "{E86291B8-93D0-4DFC-A2EC-B597900314D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.Library", "LobAccelerator.Library\LobAccelerator.Library.csproj", "{E86291B8-93D0-4DFC-A2EC-B597900314D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobAccelerator.Library.Tests", "LobAccelerator.Library.Tests\LobAccelerator.Library.Tests.csproj", "{289D3FC3-2B84-417A-97BB-A41E71D52A07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.Library.Tests", "LobAccelerator.Library.Tests\LobAccelerator.Library.Tests.csproj", "{289D3FC3-2B84-417A-97BB-A41E71D52A07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobAccelerator.Utils", "LobAccelerator.Utils\LobAccelerator.Utils.csproj", "{9619DC6A-64B1-4C37-B25C-069E9DE103AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{289D3FC3-2B84-417A-97BB-A41E71D52A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{289D3FC3-2B84-417A-97BB-A41E71D52A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{289D3FC3-2B84-417A-97BB-A41E71D52A07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9619DC6A-64B1-4C37-B25C-069E9DE103AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9619DC6A-64B1-4C37-B25C-069E9DE103AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9619DC6A-64B1-4C37-B25C-069E9DE103AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9619DC6A-64B1-4C37-B25C-069E9DE103AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
