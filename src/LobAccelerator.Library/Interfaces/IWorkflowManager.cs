@@ -5,6 +5,5 @@ namespace LobAccelerator.Library.Interfaces
 {
     public interface IWorkflowManager : IResourceManager<Workflow>
     {
-        Task CreateResourceAsync(Workflow resource);
     }
 }

@@ -10,7 +10,7 @@ using System.IO;
 
 namespace LobAccelerator.SchemaGenerator
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {

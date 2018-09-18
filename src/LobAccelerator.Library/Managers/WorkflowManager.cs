@@ -19,23 +19,16 @@ namespace LobAccelerator.Manager.Library
             var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
             teamsManager = new TeamsManager(httpClient);
         }
-
-        private HttpClient CreateHttpClient(string baseUrl, string accessToken)
-        {
-            var client = new HttpClient
-            {
-                BaseAddress = new Uri(baseUrl)
-            };
-
-            client.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
-
-            return client;
-        }
-
+        
         public async Task CreateResourceAsync(Workflow resource)
         {
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
+        }
+
+        Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)
+        {
+            throw new NotImplementedException();
         }
     }
 }

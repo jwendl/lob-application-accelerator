@@ -4,9 +4,14 @@ using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
+using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
+using LobAccelerator.Library.Models.Teams.Users;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -16,6 +21,7 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly HttpClient httpClient;
         private readonly string _apiVersion;
+        private HttpResponseMessage responseDeletePerm;
 
         public TeamsManager(HttpClient httpClient)
         {
@@ -28,8 +34,9 @@ namespace LobAccelerator.Library.Managers
             Result<Group> group = await CreateGroupAsync(resource);
             Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
             IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
-            
-            return Result.Combine(group, team, channels);
+            IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
+
+            return Result.Combine(group, team, channels, members);
         }
 
         /// <summary>
@@ -133,17 +140,79 @@ namespace LobAccelerator.Library.Managers
             return Result.Combine(results);
         }
 
-        public async Task AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
+        public async Task<IResult> AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
         {
-            var addMemberUrl = $"beta/groups/{teamId}/members/$ref";
+            var results = new List<Result<NoneResult>>();
+            var addMemberUrl = $"{_apiVersion}/groups/{teamId}/members/$ref";
 
             foreach (var member in members)
             {
-                var channelObj = new CreateChannelGraphObject(member);
+                var user = await GetUserAsync(member);
+                var result = new Result<NoneResult>();
+                var channelObj = new CreateChannelGraphObject(user.Value);
                 var response = await httpClient.PostContentAsync(addMemberUrl, channelObj);
+                var responseString = await response.Content.ReadAsStringAsync();
 
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.HasError = true;
+                    result.Error = response.ReasonPhrase;
+                    result.DetailedError = responseString;
+                }
+
+                results.Add(result);
             }
+
+            return Result.Combine(results);
+        }
+        
+        public async Task<Result<User>> GetUserAsync(string memberEmail)
+        {
+            var result = new Result<User>();
+            var uri = $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id";
+            
+            var response = await httpClient.GetContentAsync(uri);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                result.Value = JsonConvert.DeserializeObject<User>(responseString);
+                return result;
+            }
+
+            result.HasError = true;
+            result.Error = response.ReasonPhrase;
+            result.DetailedError = responseString;
+
+            return result;
+        }
+
+        public async Task<string> SearchTeamAsync(string displayName)
+        {
+            var listTeams = $"beta/groups?$filter=displayName eq '{displayName}'&$select=id";
+
+            var response = await httpClient.GetAsync(listTeams);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var contentObj = JObject.Parse(content);
+
+            return contentObj["value"][0]["id"].Value<string>();
+        }
+
+        public async Task<Result<NoneResult>> DeleteChannelAsync(string groupId)
+        {
+            var result = new Result<NoneResult>();
+            var deleteUri = $"{_apiVersion}/groups/{groupId}";
+            var deletePermanentUri = $"{_apiVersion}/directory/deleteditems/microsoft.graph.group/{groupId}";
+
+            var responseDelete = await httpClient.DeleteAsync(deleteUri);
+            responseDelete.EnsureSuccessStatusCode();
+
+            var responseDeletePerm = await httpClient.DeleteAsync(deletePermanentUri);
+            responseDeletePerm.EnsureSuccessStatusCode();
+
+            return result;
         }
 
         private class CreateChannelGraphObject
@@ -154,9 +223,9 @@ namespace LobAccelerator.Library.Managers
             public string DisplayName
                 => $"https://graph.microsoft.com/beta/directoryObjects/{memberId}";
 
-            public CreateChannelGraphObject(string memberId)
+            public CreateChannelGraphObject(User user)
             {
-                this.memberId = memberId;
+                memberId = user.Value.Any() ? user.Value[0].Id : "0";
             }
         }
     }
