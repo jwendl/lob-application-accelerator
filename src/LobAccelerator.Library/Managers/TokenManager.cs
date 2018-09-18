@@ -38,10 +38,9 @@ namespace LobAccelerator.Library.Managers
 
     class TokenManager
     {
-        static async Task<AuthResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
+        static async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
         {
-            // NO BUENO, NO REFRESH TOKEN!!!
-            /*var clientTokenCache = new TokenCache();
+            var clientTokenCache = new TokenCache();
             var userTokenCache = new TokenCache();
             var appTokenCache = new TokenCache();
 
@@ -55,51 +54,7 @@ namespace LobAccelerator.Library.Managers
 
             var user = new UserAssertion(authenticationHeaderValue.Parameter);
 
-            return await msalApp.AcquireTokenOnBehalfOfAsync(scopes, user, System.Configuration.ConfigurationManager.AppSettings["Authority"]);*/
-
-            // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow
-            var client = new HttpClient();
-            try
-            {
-                var resp = await client.PostAsync(
-                    string.Format("https://login.microsoftonline.com/{0}/oauth2/v2.0/token",
-                        System.Configuration.ConfigurationManager.AppSettings["TenantId"]),
-                    new StringContent(string.Format("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" +
-                        "&client_id={0}" +
-                        "&client_secret={1}" +
-                        "&assertion={2}" +
-                        "&scope=https://graph.microsoft.com/user.read+offline_access" +
-                        "&requested_token_use=on_behalf_of",
-                        System.Configuration.ConfigurationManager.AppSettings["ApplicationId"],
-                        System.Configuration.ConfigurationManager.AppSettings["ApplicationSecret"],
-                        authenticationHeaderValue.Parameter),
-                        System.Text.Encoding.UTF8)
-                );
-
-                if (resp != null &&
-                    resp.IsSuccessStatusCode &&
-                    resp.Content != null)
-                {
-                    var respBody = await resp.Content.ReadAsStringAsync();
-                    if (string.IsNullOrEmpty(respBody))
-                    {
-                        try
-                        {
-                            return JsonConvert.DeserializeObject<AuthResult>(respBody);
-                        }
-                        catch (JsonSerializationException jse)
-                        {
-                            log.LogError(jse, "Exception encountered while deserializing on-behalf of auth response.");
-                        }
-                    }
-                }
-            }
-            catch (HttpRequestException hre)
-            {
-                log.LogError(hre, "Exception encountered while attempting on-behalf request.");
-            }
-
-            return null;
+            return await msalApp.AcquireTokenOnBehalfOfAsync(scopes, user, System.Configuration.ConfigurationManager.AppSettings["Authority"]);
         }
 
         static async Task<string> RefreshTokenAsync(string refreshToken)
