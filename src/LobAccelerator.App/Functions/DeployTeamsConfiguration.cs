@@ -2,18 +2,19 @@ using LobAccelerator.App.Locators;
 using LobAccelerator.App.Model;
 using LobAccelerator.App.Models;
 using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Threading.Tasks;
 using static LobAccelerator.App.Util.GlobalSettings;
 
 namespace LobAccelerator.App.Functions
 {
     public static class DeployTeamsConfiguration
     {
-        //[Disable]
-        [FunctionName("DeployTeamsConfiguration" )]
-        public static void Run(
+        [FunctionName("DeployTeamsConfiguration")]
+        public static async Task Run(
             [QueueTrigger(TEAMS_TASK_QUEUE)]
             string teamTask,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
@@ -28,29 +29,10 @@ namespace LobAccelerator.App.Functions
         {
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {teamTask}");
 
-            var teamsManager = ServiceLocator.GetRequiredService<ITeamsManager>();
+            Workflow workflow = null; // TODO: Deserialize from Queue
+            IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
-            //TODO: Call refresh Token Functionality
-            //Hey use me :: refreshToken
-
-            //TODO: Create teams group
-            //Hey use me :: teamsConfig
-
-
-            //foreach (var member in teamsMembers)
-            //{
-            //    //TODO: Create members for team
-            //    //Hey use me :: teamsMembers
-            //}
-
-            //foreach (var channel in teamsChannels)
-            //{
-            //    //TODO: Create channels for team
-            //    var usersForTheChannel = channel.GetMembersList();
-            //    //TODO: Add the suers to the channel
-
-            //}
-
+            await workflowManager.CreateResourceAsync(workflow);
         }
     }
 }

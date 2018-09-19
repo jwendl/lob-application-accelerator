@@ -5,7 +5,7 @@ using LobAccelerator.Library.Models;
 using System;
 using System.Threading.Tasks;
 
-namespace LobAccelerator.Manager.Library
+namespace LobAccelerator.Library.Managers
 {
     public class WorkflowManager
         : IWorkflowManager
