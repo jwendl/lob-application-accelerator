@@ -26,7 +26,7 @@ namespace LobAccelerator.App.Functions
             Workflow workflow = null; // TODO: Deserialize from Queue
             IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
-            await workflowManager.CreateResourceAsync(workflow);
+            workflowManager.CreateResourceAsync(workflow).Wait();
         }
     }
 }
