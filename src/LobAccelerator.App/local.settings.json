@@ -2,6 +2,14 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "AzureWebJobsDashboard": "UseDevelopmentStorage=true"
+    "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "ApplicationId": "398917db-d35d-4bd9-81cf-c3ff85c60e12",
+    "ApplicationSecret": "\"zbcaLUJ551[(ualTOPF99:$,",
+    "Authority": "",
+    "RedirectUri": "https://localhost/",
+    "StorageConnectionString": "UseDevelopmentStorage=true;",
+    "TokenCacheContainerName": "TokenCacheContainer",
+    "TokenCacheBlobName": "TokenCacheBlob"
   }
 }

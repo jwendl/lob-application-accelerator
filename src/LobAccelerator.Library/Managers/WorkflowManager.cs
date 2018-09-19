@@ -2,15 +2,13 @@
 using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
-using LobAccelerator.Library.Models.Common;
 using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Manager.Library
 {
-    public class WorkflowManager : IWorkflowManager
+    public class WorkflowManager
+        : IWorkflowManager
     {
         private readonly ITeamsManager teamsManager;
 
@@ -20,22 +18,15 @@ namespace LobAccelerator.Manager.Library
             teamsManager = new TeamsManager(httpClient);
         }
 
-        private HttpClient CreateHttpClient(string baseUrl, string accessToken)
-        {
-            var client = new HttpClient
-            {
-                BaseAddress = new Uri(baseUrl)
-            };
-
-            client.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
-
-            return client;
-        }
-
         public async Task CreateResourceAsync(Workflow resource)
         {
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
+        }
+
+        Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)
+        {
+            throw new NotImplementedException();
         }
     }
 }

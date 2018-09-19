@@ -4,6 +4,7 @@ using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -14,28 +15,24 @@ namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
-        private readonly ConfigurationManager configuration;
-        private readonly TokenRetriever tokenRetriever;
+        private static readonly TokenRetriever tokenRetriever
+            = new TokenRetriever(new ConfigurationManager());
 
-        public TeamsTests()
+        public Workflow CreateWorkflow(int teamNumber)
         {
-            configuration = new ConfigurationManager();
-            tokenRetriever = new TokenRetriever(configuration);
-        }
-
-        public static Workflow Workflow => new Workflow()
-        {
-            Teams = new List<TeamResource>()
+            return new Workflow
+            {
+                Teams = new List<TeamResource>()
                 {
                     new TeamResource()
                     {
-                        DisplayName = "New Teams Team",
-                        Description = "This is a team for teams.",
-                        MailNickname = "group",
+                        DisplayName = $"Team {teamNumber}",
+                        Description = $"This is a testing team {teamNumber}.",
+                        MailNickname = $"group{teamNumber}",
                         Members = new List<string>()
                         {
-                            "juswen@microsoft.com",
-                            "ridize@microsoft.com",
+                            "jwendl@jwazuread.onmicrosoft.com",
+                            "testuser001@jwazuread.onmicrosoft.com",
                         },
                         MemberSettings = new MemberSettings()
                         {
@@ -55,20 +52,21 @@ namespace LobAccelerator.Library.Tests
                         {
                             new ChannelResource
                             {
-                                DisplayName = "New Teams Channel",
+                                DisplayName = "New Teams Channel 2",
                                 Description = "A new channel for the teams team."
                             }
                         }
                     }
                 }
-        };
-
-
+            };
+        }
+        
         [Fact]
         public async Task AddNewGroup()
         {
             //Arrange
-            var team = Workflow.Teams.First();
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
@@ -77,13 +75,18 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(result.HasError);
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
         public async Task AddNewTeam()
         {
             //Arrange
-            var team = Workflow.Teams.First();
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
@@ -93,26 +96,82 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.False(teamResult.HasError);
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
+        }
+
+        [Fact]
+        public async Task AddNewChannels()
+        {
+            //Arrange
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var channelsResult = await teamsManager.CreateChannelsAsync(teamResult.Value.Id, team.Channels);
+
+            //Assert
+            Assert.False(channelsResult.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         [Fact]
         public async Task AddPeopleToChannel()
         {
             //Arrange
-            var teamId = Workflow.Teams.First().DisplayName;
-            var members = Workflow.Teams.First().Members;
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
+            
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
             //Act
-            await teamsManager.AddPeopleToChannelAsync(members, teamId);
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var membersResult = await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Value.Id);
 
             //Assert
+            Assert.False(membersResult.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
+        }
+
+        [Fact]
+        public async Task AddAllResources()
+        {
+            //Arrange
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var result = await teamsManager.CreateResourceAsync(team);
+
+            //Assert
+            Assert.False(result.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
         }
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync("Group.ReadWrite.All");
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
+                "Group.ReadWrite.All", 
+                "User.ReadBasic.All");
             var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;
         }

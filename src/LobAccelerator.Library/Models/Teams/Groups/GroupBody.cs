@@ -18,7 +18,7 @@ namespace LobAccelerator.Library.Models.Teams.Groups
         [JsonProperty("groupTypes")]
         [Description("Office 365 or dynamic group.")]
         public List<string> GroupTypes { get; set; }
-        
+
         [JsonProperty("mailEnabled")]
         [Description("Set this to true if creating an Office 365 Group or false if creating dynamic or security group.")]
         public bool MailEnabled { get; set; }

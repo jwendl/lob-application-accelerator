@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols;
+﻿using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Utils
 {
-    class AuthHelper
+    public class AuthHelper
     {
         static AuthHelper()
         {
@@ -26,11 +25,11 @@ namespace LobAccelerator.Library.Utils
         /// <param name="expectedScopes"></param>
         /// <param name="log"></param>
         /// <returns></returns>
-        static async Task<ClaimsPrincipal> ValidateTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes, ILogger log)
+        public static async Task<ClaimsPrincipal> ValidateTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, string expectedIssuer, string expectedAudience, string[] expectedScopes)
         {
             if (authenticationHeaderValue?.Scheme != "Bearer")
             {
-                throw new ArgumentException(string.Format("{0} is not supported", authenticationHeaderValue?.Scheme), "authenticationHeaderValue");
+                throw new ArgumentException($"{authenticationHeaderValue?.Scheme} is not supported", "authenticationHeaderValue");
             }
 
             var documentRetriever = new HttpDocumentRetriever
@@ -55,7 +54,7 @@ namespace LobAccelerator.Library.Utils
                 ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
-                IssuerSigningKeys = configuration.SigningKeys // need to figure out if we care about these
+                IssuerSigningKeys = configuration.SigningKeys
             };
 
             ClaimsPrincipal result = null;
@@ -66,6 +65,7 @@ namespace LobAccelerator.Library.Utils
                 try
                 {
                     var handler = new JwtSecurityTokenHandler();
+                    Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
                     result = handler.ValidateToken(authenticationHeaderValue.Parameter, validationParameter, out var token);
                     return result;
                 }
@@ -79,8 +79,7 @@ namespace LobAccelerator.Library.Utils
                 }
                 catch (SecurityTokenException ex)
                 {
-                    log.LogError(ex.Message);
-                    return null;
+                    throw ex;
                 }
             }
 
