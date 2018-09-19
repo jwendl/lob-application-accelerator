@@ -1,13 +1,6 @@
 ﻿using Microsoft.Identity.Client;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace LobAccelerator.Library.Utils
 {
@@ -43,15 +36,15 @@ namespace LobAccelerator.Library.Utils
             {
                 args.TokenCache.Deserialize(
                     StorageHelper.BlobExistsAsync(
-                        ConfigurationManager.AppSettings["StorageConnectionString"],
-                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                        ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                        Environment.GetEnvironmentVariable("StorageConnectionString"),
+                        Environment.GetEnvironmentVariable("TokenCacheContainerName"),
+                        Environment.GetEnvironmentVariable("TokenCacheBlobName"))
                         .GetAwaiter().GetResult() //task.wait (s)
                     ? ProtectedData.Unprotect(
                         StorageHelper.DownloadBlobAsync(
-                            ConfigurationManager.AppSettings["StorageConnectionString"],
-                            ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                            ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                            Environment.GetEnvironmentVariable("StorageConnectionString"),
+                            Environment.GetEnvironmentVariable("TokenCacheContainerName"),
+                            Environment.GetEnvironmentVariable("TokenCacheBlobName"))
                         .GetAwaiter().GetResult(),
                         null,
                         DataProtectionScope.CurrentUser)
@@ -68,9 +61,9 @@ namespace LobAccelerator.Library.Utils
                 {
                     // reflect changes in the persistent store
                     StorageHelper.UploadBlobAsync(
-                        ConfigurationManager.AppSettings["StorageConnectionString"],
-                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                        ConfigurationManager.AppSettings["TokenCacheBlobName"],
+                        Environment.GetEnvironmentVariable("StorageConnectionString"),
+                        Environment.GetEnvironmentVariable("TokenCacheContainerName"),
+                        Environment.GetEnvironmentVariable("TokenCacheBlobName"),
                         ProtectedData.Protect(args.TokenCache.Serialize(),
                                                 null,
                                                 DataProtectionScope.CurrentUser)

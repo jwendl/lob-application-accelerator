@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace LobAccelerator.Library.Tests.Utils.Configuration
 {
-    public class ConfigurationManager : IConfiguration
+    public class ConfigurationManager
+        : IConfiguration
     {
         public IConfiguration Configuration { get; }
 
