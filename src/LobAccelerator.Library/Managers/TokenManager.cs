@@ -1,18 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using LobAccelerator.Library.Utils;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using Microsoft.Identity.Core.Cache;
-using System.Net.Http;
-using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
 {
@@ -29,37 +22,53 @@ namespace LobAccelerator.Library.Managers
           "refresh_token": "OAQABAAAAAABnfiG-mA6NTae7CdWW7QfdAALzDWjw6qSn4GUDfxWzJDZ6lk9qRw4AnqPnvFqnzS3GiikHr5wBM1bV1YyjH3nUeIhKhqJWGwqJFRqs2sE_rqUfz7__3J92JDpi6gDdCZNNaXgreQsH89kLCVNYZeN6kGuFGZrjwxp1wS2JYc97E_3reXBxkHrA09K5aR-WsSKCEjf6WI23FhZMTLhk_ZKOe_nWvcvLj13FyvSrTMZV2cmzyCZDqEHtPVLJgSoASuQlD2NXrfmtcmgWfc3uJSrWLIDSn4FEmVDA63X6EikNp9cllH3Gp7Vzapjlnws1NQ1_Ff5QrmBHp_LKEIwfzVKnLLrQXN0EzP8f6AX6fdVTaeKzm7iw6nH0vkPRpUeLc3q_aNsPzqcTOnFfgng7t2CXUsMAGH5wclAyFCAwL_Cds7KnyDLL7kzOS5AVZ3Mqk2tsPlqopAiHijZaJumdTILDudwKYCFAMpUeUwEf9JmyFjl2eIWPmlbwU7cHKWNvuRCOYVqbsTTpJthwh4PvsL5ov5CawH_TaV8omG_tV6RkziHG9urk9yp2PH9gl7Cv9ATa3Vt3PJWUS8LszjRIAJmyw_EhgHBfYCvEZ8U9PYarvgqrtweLcnlO7BfnnXYEC18z_u5wemAzNBFUje2ttpGtRmRic4AzZ708tBHva2ePJWGX6pgQbiWF8esOrvWjfrrlfOvEn1h6YiBW291M022undMdXzum6t1Y1huwxHPHjCAA"
         }
          */
-        string AccessToken { get; set; }
-        string RefreshToken { get; set; }
-        string Scope { get; set; }
-        DateTimeOffset ExpiresOn { get; set; }
 
+        string AccessToken { get; set; }
+
+        string RefreshToken { get; set; }
+
+        string Scope { get; set; }
+
+        DateTimeOffset ExpiresOn { get; set; }
     }
 
-    class TokenManager
+    public interface ITokenManager
     {
-        static async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
+        Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log);
+    }
+
+    public class TokenManager
+        : ITokenManager
+    {
+        private readonly IConfiguration configuration;
+        private readonly ITokenCacheHelper tokenCacheHelper;
+
+        public TokenManager(IConfiguration configuration, ITokenCacheHelper tokenCacheHelper)
+        {
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.tokenCacheHelper = tokenCacheHelper ?? throw new ArgumentNullException(nameof(tokenCacheHelper));
+        }
+
+        public async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
         {
             var clientTokenCache = new TokenCache();
-            var userTokenCache = new TokenCache();
+            var userTokenCache = tokenCacheHelper.FetchUserCache();
             var appTokenCache = new TokenCache();
 
             var msalApp = new ConfidentialClientApplication(
-                System.Configuration.ConfigurationManager.AppSettings["ApplicationId"],
-                System.Configuration.ConfigurationManager.AppSettings["Authority"],
-                System.Configuration.ConfigurationManager.AppSettings["RedirectUri"],
-                new ClientCredential(System.Configuration.ConfigurationManager.AppSettings["ApplicationSecret"]),
+                configuration["ApplicationId"],
+                configuration["RedirectUri"],
+                new ClientCredential(configuration["ApplicationSecret"]),
                 userTokenCache,
                 appTokenCache);
 
             var user = new UserAssertion(authenticationHeaderValue.Parameter);
 
-            return await msalApp.AcquireTokenOnBehalfOfAsync(scopes, user, System.Configuration.ConfigurationManager.AppSettings["Authority"]);
-        }
+            var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
+                user,
+                configuration["Authority"]);
 
-        static async Task<string> RefreshTokenAsync(string refreshToken)
-        {
-            return null;
+            return result;
         }
     }
 }

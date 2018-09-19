@@ -6,10 +6,8 @@ using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
 using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
-using LobAccelerator.Library.Models.Teams.Users;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -17,11 +15,12 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
 {
-    public class TeamsManager : ITeamsManager
+    public class TeamsManager
+        : ITeamsManager
     {
         private readonly HttpClient httpClient;
         private readonly string _apiVersion;
-        private HttpResponseMessage responseDeletePerm;
+        private readonly HttpResponseMessage responseDeletePerm;
 
         public TeamsManager(HttpClient httpClient)
         {
@@ -60,7 +59,7 @@ namespace LobAccelerator.Library.Managers
 
             var response = await httpClient.PostContentAsync(groupUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
-            
+
             if (response.IsSuccessStatusCode)
             {
                 result.Value = JsonConvert.DeserializeObject<Group>(responseString);
@@ -117,12 +116,12 @@ namespace LobAccelerator.Library.Managers
             var results = new List<Result<Channel>>();
             var uri = $"{_apiVersion}/teams/{teamId}/channels";
 
-            foreach(var channel in channels)
+            foreach (var channel in channels)
             {
                 var result = new Result<Channel>();
                 var response = await httpClient.PostContentAsync(uri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
@@ -165,12 +164,12 @@ namespace LobAccelerator.Library.Managers
 
             return Result.Combine(results);
         }
-        
+
         public async Task<Result<User>> GetUserAsync(string memberEmail)
         {
             var result = new Result<User>();
             var uri = $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id";
-            
+
             var response = await httpClient.GetContentAsync(uri);
             var responseString = await response.Content.ReadAsStringAsync();
 
