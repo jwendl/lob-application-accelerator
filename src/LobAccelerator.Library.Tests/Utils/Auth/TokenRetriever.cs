@@ -59,7 +59,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<string> GetAuthorizationCode(string scopes)
         {
-            string authorizeUrl = 
+            string authorizeUrl =
                 string.Format("https://login.microsoftonline.com/{0}/oauth2/authorize",
                     tenantId);
 
@@ -81,7 +81,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private async Task<string> LoginAndGetAuthCode(string authorizeUrl, string[] parameters)
         {
             // Navigate to login page
-            IWebDriver driver = new ChromeDriver
+            IWebDriver driver = new ChromeDriver(@"Loader")
             {
                 Url = GetEndpointWithQueryParameters(authorizeUrl, parameters)
             };
@@ -111,7 +111,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<AzureAdToken> GetToken(string authorizationCode, string scopes)
         {
-            string tokenUrl = 
+            string tokenUrl =
                 string.Format("https://login.microsoftonline.com/{0}/oauth2/token",
                     tenantId);
 
