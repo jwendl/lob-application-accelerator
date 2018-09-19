@@ -21,15 +21,15 @@ namespace LobAccelerator.Library.Tests
         [Fact]
         public async Task UploadBytesToBlob()
         {
-            //Arrange
+            // Arrange
             var bytes = new byte[5];
             Random random = new Random();
             random.NextBytes(bytes);
 
-            //Act
+            // Act
             var result = await StorageHelper.UploadBlobAsync(connectionString, containerName, blobName, bytes);
 
-            //Assert
+            // Assert
             Assert.True(result);
         }
     }

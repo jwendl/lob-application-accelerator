@@ -1,5 +1,7 @@
+using LobAccelerator.App.Locators;
 using LobAccelerator.App.Model;
 using LobAccelerator.App.Models;
+using LobAccelerator.Library.Interfaces;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using System.Linq;
@@ -25,6 +27,8 @@ namespace LobAccelerator.App.Functions
             ILogger log)
         {
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {teamTask}");
+
+            var teamsManager = ServiceLocator.GetRequiredService<ITeamsManager>();
 
             //TODO: Call refresh Token Functionality
             //Hey use me :: refreshToken

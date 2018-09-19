@@ -20,7 +20,7 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly HttpClient httpClient;
         private readonly string _apiVersion;
-        private HttpResponseMessage responseDeletePerm;
+        private readonly HttpResponseMessage responseDeletePerm;
 
         public TeamsManager(HttpClient httpClient)
         {
