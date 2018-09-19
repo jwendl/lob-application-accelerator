@@ -17,6 +17,7 @@ namespace LobAccelerator.App.Locators
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<HttpClient, HttpClient>();
+            serviceCollection.AddSingleton<IWorkflowManager, WorkflowManager>();
             serviceCollection.AddSingleton<ITeamsManager, TeamsManager>();
             serviceCollection.AddSingleton<IConfiguration, ConfigurationManager>();
             serviceCollection.AddSingleton<ITokenManager, TokenManager>();
