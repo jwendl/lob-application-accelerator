@@ -11,6 +11,7 @@ namespace LobAccelerator.Library.Utils
     }
 
     public class TokenCacheHelper
+        : ITokenCacheHelper
     {
         private readonly IConfiguration configuration;
 
@@ -23,7 +24,7 @@ namespace LobAccelerator.Library.Utils
         /// Get the user token cache
         /// </summary>
         /// <returns></returns>
-        public TokenCache GetUserCache()
+        public TokenCache FetchUserCache()
         {
             if (usertokenCache == null)
             {
