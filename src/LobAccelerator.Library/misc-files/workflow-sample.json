@@ -1,0 +1,36 @@
+{
+  "teams": [
+    {
+      "displayName": "My MS Teams Group",
+      "description": "My MS Teams Group Description",
+      "members": [
+        "juanr@microsoft.com",
+        "juswen@microsoft.com",
+        "tedistef@microsoft.com",
+        "altagin@microsoft.com"
+      ],
+      "channels": [
+        {
+          "displayName": "my channel one",
+          "description": "my channel one description",
+          "azFilesFolderPath": "/team-files/",
+          "members": [
+            "juanr@microsoft.com",
+            "juswen@microsoft.com"
+          ]
+        },
+        {
+          "displayName": "my channel two",
+          "description": "my channel two description",
+          "azFilesFolderPath": "/team-files-alt/",
+          "members": [
+            "tedistef@microsoft.com",
+            "juswen@microsoft.com",
+            "andrg@microsoft.com",
+            "altagin@microsoft.com"
+          ]
+        }
+      ]
+    }
+  ]
+}

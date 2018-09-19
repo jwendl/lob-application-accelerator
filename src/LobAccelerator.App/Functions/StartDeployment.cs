@@ -1,5 +1,6 @@
 using LobAccelerator.App.Models;
 using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -7,6 +8,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static LobAccelerator.App.Util.GlobalSettings;
@@ -28,10 +31,15 @@ namespace LobAccelerator.App.Functions
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
-            var teamConfig = await req.Content.ReadAsAsync<TeamsJsonConfiguration>();
+            var workflow = await req.Content.ReadAsAsync<Workflow>();
             var authToken = req.Headers.Authorization;
             var hasToken = !string.IsNullOrWhiteSpace(authToken.Parameter);
 
+            var teamConfig = workflow.Teams.FirstOrDefault();
+            var newWorkflow = new Workflow
+                        {
+                            Teams = new List<TeamResource> { teamConfig }
+                        };
             var validator = new TeamsInputValidator();
             var validated = validator.Validate(teamConfig, hasToken, out var configvalidation);
             var verbose = validator.GetVerboseValitadion(configvalidation);
@@ -42,12 +50,12 @@ namespace LobAccelerator.App.Functions
                 var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
                 parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
 
-                var requestBody = JsonConvert.SerializeObject(teamConfig);
+                var requestBody = JsonConvert.SerializeObject(newWorkflow);
                 await queue.AddMessageAsync(new CloudQueueMessage(requestBody));
             }
 
             return validated
-                ? (ActionResult)new OkObjectResult($"Team: {teamConfig.Name} is schedulled for creation")
+                ? (ActionResult)new OkObjectResult($"Team: {teamConfig.DisplayName} is schedulled for creation")
                 : new BadRequestObjectResult($"Invalid HttpRequest, reason: {verbose}");
         }
 

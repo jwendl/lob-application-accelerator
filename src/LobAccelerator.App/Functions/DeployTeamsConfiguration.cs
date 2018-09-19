@@ -4,8 +4,6 @@ using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Threading.Tasks;
 using static LobAccelerator.App.Util.GlobalSettings;
 
 namespace LobAccelerator.App.Functions
@@ -13,17 +11,16 @@ namespace LobAccelerator.App.Functions
     public static class DeployTeamsConfiguration
     {
         //[Disable]
-        [FunctionName("DeployTeamsConfiguration" )]
+        [FunctionName("DeployTeamsConfiguration")]
         public static void Run(
             [QueueTrigger(REQUEST_QUEUE)]
-            TeamsJsonConfiguration teamTask,
+            Workflow workflow,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
             Parameter refreshToken,
             ILogger log)
         {
-            log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {teamTask}");
+            log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
 
-            Workflow workflow = null; // TODO: Deserialize from Queue
             IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
             workflowManager.CreateResourceAsync(workflow).Wait();
