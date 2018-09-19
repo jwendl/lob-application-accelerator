@@ -1,23 +1,30 @@
-﻿using Microsoft.Identity.Client;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client;
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace LobAccelerator.Library.Utils
 {
-    static class TokenCacheHelper
+    public interface ITokenCacheHelper
     {
+        TokenCache FetchUserCache();
+    }
+
+    public class TokenCacheHelper
+        : ITokenCacheHelper
+    {
+        private readonly IConfiguration configuration;
+
+        public TokenCacheHelper(IConfiguration configuration)
+        {
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
+
         /// <summary>
         /// Get the user token cache
         /// </summary>
         /// <returns></returns>
-        public static TokenCache GetUserCache()
+        public TokenCache FetchUserCache()
         {
             if (usertokenCache == null)
             {
@@ -37,21 +44,21 @@ namespace LobAccelerator.Library.Utils
         /// Risk deadlock
         /// </summary>
         /// <param name="args"></param>
-        public static void BeforeAccessNotification(TokenCacheNotificationArgs args)
+        public void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
             lock (FileLock)
             {
                 args.TokenCache.Deserialize(
                     StorageHelper.BlobExistsAsync(
-                        ConfigurationManager.AppSettings["StorageConnectionString"],
-                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                        ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                        configuration["StorageConnectionString"],
+                        configuration["TokenCacheContainerName"],
+                        configuration["TokenCacheBlobName"])
                         .GetAwaiter().GetResult() //task.wait (s)
                     ? ProtectedData.Unprotect(
                         StorageHelper.DownloadBlobAsync(
-                            ConfigurationManager.AppSettings["StorageConnectionString"],
-                            ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                            ConfigurationManager.AppSettings["TokenCacheBlobName"])
+                            configuration["StorageConnectionString"],
+                            configuration["TokenCacheContainerName"],
+                            configuration["TokenCacheBlobName"])
                         .GetAwaiter().GetResult(),
                         null,
                         DataProtectionScope.CurrentUser)
@@ -59,7 +66,7 @@ namespace LobAccelerator.Library.Utils
             }
         }
 
-        public static void AfterAccessNotification(TokenCacheNotificationArgs args)
+        public void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
             // if the access operation resulted in a cache update
             if (args.TokenCache.HasStateChanged)
@@ -68,9 +75,9 @@ namespace LobAccelerator.Library.Utils
                 {
                     // reflect changes in the persistent store
                     StorageHelper.UploadBlobAsync(
-                        ConfigurationManager.AppSettings["StorageConnectionString"],
-                        ConfigurationManager.AppSettings["TokenCacheContainerName"],
-                        ConfigurationManager.AppSettings["TokenCacheBlobName"],
+                        configuration["StorageConnectionString"],
+                        configuration["TokenCacheContainerName"],
+                        configuration["TokenCacheBlobName"],
                         ProtectedData.Protect(args.TokenCache.Serialize(),
                                                 null,
                                                 DataProtectionScope.CurrentUser)
