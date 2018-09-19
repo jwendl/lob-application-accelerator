@@ -27,6 +27,8 @@ namespace LobAccelerator.App.Functions
             ICollector<ChannelConfiguration> channelEntries,
             [Queue(TEAMS_TASK_QUEUE)]
             out CloudQueueMessage newTeamsTask,
+            //[Queue(TEAMS_TASK_QUEUE)]
+            //CloudQueue  taskQueue,
             ILogger log)
         {
             log.LogInformation($"CreateTasksTree trigger function processed for requested Id: {queueMsg}");
@@ -35,6 +37,7 @@ namespace LobAccelerator.App.Functions
 
             //create an entry in table for teamconfiguration
             teamEntry = CreateTeamEntry(teamConfig);
+            
             var memberlist = CreateMemberEntries(teamConfig, teamEntry);
             foreach (var m in memberlist)
             {
@@ -46,6 +49,9 @@ namespace LobAccelerator.App.Functions
             {
                 channelEntries.Add(c);
             }
+
+            //taskQueue.AddMessageAsync(new CloudQueueMessage(teamEntry.RowKey)).Wait();
+
             newTeamsTask = new CloudQueueMessage(teamEntry.RowKey);
         }
 
