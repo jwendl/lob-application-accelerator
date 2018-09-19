@@ -27,7 +27,7 @@ namespace LobAccelerator.Library.Utils
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.ReadLine();
+                
                 return false;
             }
         }
@@ -52,7 +52,7 @@ namespace LobAccelerator.Library.Utils
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.ReadLine();
+                
                 return false;
             }
 
@@ -60,7 +60,7 @@ namespace LobAccelerator.Library.Utils
         }
 
         /// <summary>
-        /// Downloads entire blob locally with passed in filename. Will overwrite file if it exists.
+        /// Returns blob as bytes. Will return empty byte array if blob not found.
         /// </summary>
         /// <param name="container"></param>
         /// <param name="blobName"></param>
@@ -72,8 +72,15 @@ namespace LobAccelerator.Library.Utils
                 var container = await GetContainerAsync(connectionString, containerName);
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
+                await blockBlob.FetchAttributesAsync();
 
-                var blobData = new byte[blockBlob.Properties.Length];
+                var dataSize = blockBlob.Properties.Length;
+                if (dataSize < 0)
+                {
+                    return new byte[0];
+                }
+
+                var blobData = new byte[dataSize];
                 var downloadedSize = await blockBlob.DownloadToByteArrayAsync(blobData, 0);
 
                 if (blockBlob.Properties.Length != downloadedSize)
@@ -86,7 +93,6 @@ namespace LobAccelerator.Library.Utils
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.ReadLine();
                 return new byte[0];
             }
         }
@@ -109,7 +115,7 @@ namespace LobAccelerator.Library.Utils
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.ReadLine();
+                
                 return false;
             }
 
@@ -128,13 +134,13 @@ namespace LobAccelerator.Library.Utils
             catch (FormatException)
             {
                 Console.WriteLine(errorMessage);
-                Console.ReadLine();
+                
                 throw;
             }
             catch (ArgumentException)
             {
                 Console.WriteLine(errorMessage);
-                Console.ReadLine();
+                
                 throw;
             }
 
@@ -163,7 +169,7 @@ namespace LobAccelerator.Library.Utils
             {
                 Console.WriteLine(e.ToString());
                 Console.WriteLine("If you are running with the default configuration, please make sure you have started the storage emulator. Press the Windows key and type Azure Storage to select and run it from the list of applications - then restart the sample.");
-                Console.ReadLine();
+                
                 return null;
             }
 
