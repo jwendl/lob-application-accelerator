@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Utils;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using System;
@@ -31,18 +32,33 @@ namespace LobAccelerator.Library.Managers
         DateTimeOffset ExpiresOn { get; set; }
     }
 
-    class TokenManager
+    public interface ITokenManager
     {
-        static async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
+        Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log);
+    }
+
+    public class TokenManager
+        : ITokenManager
+    {
+        private readonly IConfiguration configuration;
+        private readonly ITokenCacheHelper tokenCacheHelper;
+
+        public TokenManager(IConfiguration configuration, ITokenCacheHelper tokenCacheHelper)
+        {
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.tokenCacheHelper = tokenCacheHelper ?? throw new ArgumentNullException(nameof(tokenCacheHelper));
+        }
+
+        public async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
         {
             var clientTokenCache = new TokenCache();
-            var userTokenCache = TokenCacheHelper.GetUserCache();
+            var userTokenCache = tokenCacheHelper.FetchUserCache();
             var appTokenCache = new TokenCache();
 
             var msalApp = new ConfidentialClientApplication(
-                Environment.GetEnvironmentVariable("ApplicationId"),
-                Environment.GetEnvironmentVariable("RedirectUri"),
-                new ClientCredential(Environment.GetEnvironmentVariable("ApplicationSecret")),
+                configuration["ApplicationId"],
+                configuration["RedirectUri"],
+                new ClientCredential(configuration["ApplicationSecret"]),
                 userTokenCache,
                 appTokenCache);
 
@@ -50,7 +66,7 @@ namespace LobAccelerator.Library.Managers
 
             var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                 user,
-                Environment.GetEnvironmentVariable("Authority"));
+                configuration["Authority"]);
 
             return result;
         }
