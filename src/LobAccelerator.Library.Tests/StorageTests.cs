@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using LobAccelerator.Library.Tests.Utils.Configuration;
+﻿using LobAccelerator.Library.Tests.Utils.Configuration;
 using LobAccelerator.Library.Utils;
+using System;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace LobAccelerator.Library.Tests
 {
-    class StorageTests
+    public class StorageTests
     {
         private readonly ConfigurationManager configuration;
         private readonly string connectionString = "UseDevelopmentStorage=true;";
-        private readonly string containerName = "TokenCacheContainer";
+        private readonly string containerName = "tokencachecontainer";
         private readonly string blobName = "TokenCacheBlob";
 
         public StorageTests()
         {
             configuration = new ConfigurationManager();
         }
-        
+
         [Fact]
         public async Task UploadBytesToBlob()
         {
@@ -31,7 +31,6 @@ namespace LobAccelerator.Library.Tests
 
             //Assert
             Assert.True(result);
-            Assert.False(result.HasError);
         }
     }
 }
