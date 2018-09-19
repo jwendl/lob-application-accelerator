@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Microsoft.Identity.Core.Cache;
 using System.Net.Http;
 using Newtonsoft.Json;
+using LobAccelerator.Library.Utils;
 
 namespace LobAccelerator.Library.Managers
 {
@@ -41,12 +42,12 @@ namespace LobAccelerator.Library.Managers
         static async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes, ILogger log)
         {
             var clientTokenCache = new TokenCache();
-            var userTokenCache = new TokenCache();
+            var userTokenCache = TokenCacheHelper.GetUserCache();
             var appTokenCache = new TokenCache();
 
             var msalApp = new ConfidentialClientApplication(
                 System.Configuration.ConfigurationManager.AppSettings["ApplicationId"],
-                System.Configuration.ConfigurationManager.AppSettings["Authority"],
+                //System.Configuration.ConfigurationManager.AppSettings["Authority"],
                 System.Configuration.ConfigurationManager.AppSettings["RedirectUri"],
                 new ClientCredential(System.Configuration.ConfigurationManager.AppSettings["ApplicationSecret"]),
                 userTokenCache,
@@ -54,12 +55,11 @@ namespace LobAccelerator.Library.Managers
 
             var user = new UserAssertion(authenticationHeaderValue.Parameter);
 
-            return await msalApp.AcquireTokenOnBehalfOfAsync(scopes, user, System.Configuration.ConfigurationManager.AppSettings["Authority"]);
-        }
+            var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
+                user,
+                System.Configuration.ConfigurationManager.AppSettings["Authority"]);
 
-        static async Task<string> RefreshTokenAsync(string refreshToken)
-        {
-            return null;
+            return result;
         }
     }
 }
