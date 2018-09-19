@@ -3,11 +3,11 @@
     public enum TeamsInputValidation
     {
         OK,
-        InvalidTeamsConfigObject ,
-        TeamNameIsNotValid ,
-        TeamHasntMembers ,
-        TeamHasntChannels ,
-        InvalidTeamsChannelName ,
+        InvalidTeamsConfigObject,
+        TeamNameIsNotValid,
+        TeamHasntMembers,
+        TeamHasntChannels,
+        InvalidTeamsChannelName,
         ChannelMembersDontMatchTeamsMembers,
         NoAuthToken,
         DuplicatedUsersOnTeam,

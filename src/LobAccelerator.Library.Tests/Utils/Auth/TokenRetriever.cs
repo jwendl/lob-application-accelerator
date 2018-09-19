@@ -14,6 +14,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 {
     public class TokenRetriever
     {
+        private readonly string tenantId;
         private readonly string username;
         private readonly string password;
         private readonly string clientId;
@@ -21,16 +22,21 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private readonly string redirectUri;
         private readonly string resource;
 
+        private Dictionary<string, AzureAdToken> TokenCaching { get; set; }
+
         public TokenRetriever(IConfiguration configuration)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
+            tenantId = configuration["AzureAd:TenantId"];
             username = configuration["AzureAd:Username"];
             password = configuration["AzureAd:Password"];
             clientId = configuration["AzureAd:ClientId"];
             clientSecret = configuration["AzureAd:ClientSecret"];
             redirectUri = configuration["AzureAd:RedirectUri"];
             resource = configuration["AzureAd:Resource"];
+
+            TokenCaching = new Dictionary<string, AzureAdToken>();
         }
 
         public async Task<AzureAdToken> GetTokenByAuthorizationCodeFlowAsync(params string[] desiredScopes)
@@ -40,22 +46,29 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
             string scopes = ConcatScopes(desiredScopes);
 
-            string authorizationCode = await GetAuthorizationCode(scopes);
-            AzureAdToken token = await GetToken(authorizationCode, scopes);
+            if (!TokenCaching.ContainsKey(scopes))
+            {
+                string authorizationCode = await GetAuthorizationCode(scopes);
+                AzureAdToken token = await GetToken(authorizationCode, scopes);
 
-            return token;
+                TokenCaching.Add(scopes, token);
+            }
+
+            return TokenCaching[scopes];
         }
 
         private async Task<string> GetAuthorizationCode(string scopes)
         {
-            const string authorizeUrl = "https://login.microsoftonline.com/common/oauth2/authorize";
+            string authorizeUrl =
+                string.Format("https://login.microsoftonline.com/{0}/oauth2/authorize",
+                    tenantId);
 
             string[] parameters = {
                 "response_type=code",
                 $"client_id={clientId}",
                 $"redirect_uri={redirectUri}",
                 $"resource={resource}",
-                "scope="
+                $"scope=api://{clientId}/access_as_user"
             };
 
             string returnUrl = await LoginAndGetAuthCode(authorizeUrl, parameters);
@@ -68,7 +81,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private async Task<string> LoginAndGetAuthCode(string authorizeUrl, string[] parameters)
         {
             // Navigate to login page
-            IWebDriver driver = new ChromeDriver
+            IWebDriver driver = new ChromeDriver(@"Loader")
             {
                 Url = GetEndpointWithQueryParameters(authorizeUrl, parameters)
             };
@@ -98,14 +111,16 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<AzureAdToken> GetToken(string authorizationCode, string scopes)
         {
-            const string url = "https://login.microsoftonline.com/common/oauth2/token";
+            string tokenUrl =
+                string.Format("https://login.microsoftonline.com/{0}/oauth2/token",
+                    tenantId);
 
             using (var httpClient = new HttpClient())
             {
                 var bodyPairs = BuildBodyForTokenRequest(authorizationCode, scopes);
                 var body = new FormUrlEncodedContent(bodyPairs);
 
-                var response = await httpClient.PostAsync(url, body);
+                var response = await httpClient.PostAsync(tokenUrl, body);
                 response.EnsureSuccessStatusCode();
 
                 var responseStr = await response.Content.ReadAsStringAsync();
