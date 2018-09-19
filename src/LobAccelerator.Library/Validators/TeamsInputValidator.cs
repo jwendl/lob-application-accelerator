@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Models;
+using LobAccelerator.Library.Models.Teams;
 using System.Linq;
 
 namespace LobAccelerator.Library.Validators
@@ -6,12 +7,12 @@ namespace LobAccelerator.Library.Validators
     public class TeamsInputValidator
     {
 
-        public bool Validate(TeamsJsonConfiguration teamsJsonConfiguration, bool hastoken)
+        public bool Validate(TeamResource teamsJsonConfiguration, bool hastoken)
         {
             return Validate(teamsJsonConfiguration, hastoken, out var dummy);
         }
 
-        public bool Validate(TeamsJsonConfiguration teamsJsonConfiguration, bool hastoken, out TeamsInputValidation validation)
+        public bool Validate(TeamResource teamsJsonConfiguration, bool hastoken, out TeamsInputValidation validation)
         {
             var rta = true;
             validation = new TeamsInputValidation();
@@ -28,17 +29,19 @@ namespace LobAccelerator.Library.Validators
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(teamsJsonConfiguration.Name))
+                if (string.IsNullOrWhiteSpace(teamsJsonConfiguration.DisplayName))
                 {
                     validation = TeamsInputValidation.TeamNameIsNotValid;
                     rta = false;
                 }
-                else if (teamsJsonConfiguration.Members == null || teamsJsonConfiguration.Members?.Count == 0)
+                else if (teamsJsonConfiguration.Members == null 
+                    || teamsJsonConfiguration.Members?.Count() == 0)
                 {
                     validation = TeamsInputValidation.TeamHasntMembers;
                     rta = false;
                 }
-                else if (teamsJsonConfiguration.Channels == null || teamsJsonConfiguration.Channels?.Count == 0)
+                else if (teamsJsonConfiguration.Channels == null 
+                    || teamsJsonConfiguration.Channels?.Count() == 0)
                 {
                     validation = TeamsInputValidation.TeamHasntChannels;
                     rta = false;
@@ -58,7 +61,8 @@ namespace LobAccelerator.Library.Validators
             return rta;
         }
 
-        private bool ValidateDuplicateUsersOnTeam(TeamsJsonConfiguration teamsJsonConfiguration, ref TeamsInputValidation validation)
+        private bool ValidateDuplicateUsersOnTeam(TeamResource teamsJsonConfiguration, 
+            ref TeamsInputValidation validation)
         {
             var rta = true;
             var duplicates = (from member in teamsJsonConfiguration.Members
@@ -120,12 +124,12 @@ namespace LobAccelerator.Library.Validators
             return verbose;
         }
 
-        private bool ValidateChannels(TeamsJsonConfiguration teamsJsonConfiguration, ref TeamsInputValidation validation)
+        private bool ValidateChannels(TeamResource teamsJsonConfiguration, ref TeamsInputValidation validation)
         {
             bool rta = true;
             foreach (var channel in teamsJsonConfiguration.Channels)
             {
-                if (string.IsNullOrWhiteSpace(channel.Name))
+                if (string.IsNullOrWhiteSpace(channel.DisplayName))
                 {
                     rta = false;
                     validation = TeamsInputValidation.InvalidTeamsChannelName;
@@ -152,7 +156,7 @@ namespace LobAccelerator.Library.Validators
             return rta;
         }
 
-        private bool ValidateDuplicatedusersOnChannel(ChannelJsonConfiguration channel,
+        private bool ValidateDuplicatedusersOnChannel(ChannelResource channel,
             ref TeamsInputValidation validation)
         {
             var rta = true;
@@ -171,7 +175,8 @@ namespace LobAccelerator.Library.Validators
             return rta;
         }
 
-        private bool ValidateChannelMembers(TeamsJsonConfiguration teamsJsonConfiguration, ChannelJsonConfiguration channel, ref TeamsInputValidation validation)
+        private bool ValidateChannelMembers(TeamResource teamsJsonConfiguration,
+            ChannelResource channel, ref TeamsInputValidation validation)
         {
             var rta = true;
             var matches = from cmember in channel.Members
