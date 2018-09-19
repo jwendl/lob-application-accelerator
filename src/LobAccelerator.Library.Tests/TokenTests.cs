@@ -1,11 +1,7 @@
 ﻿using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using LobAccelerator.Library.Utils;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 

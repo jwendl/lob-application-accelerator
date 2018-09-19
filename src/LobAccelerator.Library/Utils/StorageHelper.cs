@@ -2,8 +2,6 @@
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Configuration;
-using System.IO;
 using System.Threading.Tasks;
 
 // https://github.com/Azure-Samples/storage-blob-dotnet-getting-started
@@ -176,7 +174,7 @@ namespace LobAccelerator.Library.Utils
         {
             // Retrieve storage account information from connection string
             CloudStorageAccount storageAccount = CreateStorageAccountFromConnectionString(connectionString);
-            
+
             SharedAccessAccountPolicy policy = new SharedAccessAccountPolicy()
             {
                 // When the start time for the SAS is omitted, the start time is assumed to be the time when the storage service receives the request. 
