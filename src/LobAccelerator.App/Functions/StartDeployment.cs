@@ -1,17 +1,14 @@
 using LobAccelerator.App.Models;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Validators;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using System.IO;
-using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
-using LobAccelerator.App;
 using static LobAccelerator.App.Util.GlobalSettings;
 
 namespace LobAccelerator.App.Functions
@@ -21,7 +18,7 @@ namespace LobAccelerator.App.Functions
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
-            HttpRequest req,
+            HttpRequestMessage req,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
             Parameter parameter,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY)]
@@ -31,11 +28,9 @@ namespace LobAccelerator.App.Functions
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var teamConfig = JsonConvert.DeserializeObject<TeamsJsonConfiguration>(requestBody);
-
-            var hasToken = req.Headers.TryGetValue("Authorization", out var authTokenInfo);
-            var authToken = authTokenInfo.FirstOrDefault();
+            var teamConfig = await req.Content.ReadAsAsync<TeamsJsonConfiguration>();
+            var authToken = req.Headers.Authorization;
+            var hasToken = !string.IsNullOrWhiteSpace(authToken.Parameter);
 
             var validator = new TeamsInputValidator();
             var validated = validator.Validate(teamConfig, hasToken, out var configvalidation);
@@ -47,6 +42,7 @@ namespace LobAccelerator.App.Functions
                 var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
                 parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
 
+                var requestBody = JsonConvert.SerializeObject(teamConfig);
                 await queue.AddMessageAsync(new CloudQueueMessage(requestBody));
             }
 
