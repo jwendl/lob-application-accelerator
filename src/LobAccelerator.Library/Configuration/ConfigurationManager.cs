@@ -10,6 +10,13 @@ namespace LobAccelerator.Library.Configuration
     {
         public IConfiguration Configuration { get; }
 
+        public ConfigurationManager()
+        {
+            Configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+        }
+
         public string this[string key]
         {
             get
@@ -20,13 +27,6 @@ namespace LobAccelerator.Library.Configuration
                 return value;
             }
             set => throw new InvalidOperationException("You can't set this settings.");
-        }
-
-        public ConfigurationManager()
-        {
-            Configuration = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .Build();
         }
 
         public IConfigurationSection GetSection(string key)
