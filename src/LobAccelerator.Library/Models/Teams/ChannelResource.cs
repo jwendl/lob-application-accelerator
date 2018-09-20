@@ -15,12 +15,19 @@ namespace LobAccelerator.Library.Models.Teams
         [Description("The description of the channel.")]
         public string Description { get; set; }
 
-        [JsonProperty("azFilesFolderPath")]
-        [Description("A path on azure sotrage account to get files to be uploaded and linked to this channel")]
-        public string AzFilesFolderPath{ get; set; }
+        [JsonProperty("files")]
+        [Description("The files to be copied from the user's OneDrive for Business to Teams channel.")]
+        public IEnumerable<string> Files{ get; set; }
 
         [JsonProperty("members")]
         [Description("Channel Members, will resolve to https://graph.microsoft.com/beta/directoryObjects/<id>. For <id> use the AD Object name like me@contoso.com.")]
         public IEnumerable<string> Members { get; set; }
+
+
+        public ChannelResource()
+        {
+            Files = new List<string>();
+            Members = new List<string>();
+        }
     }
 }
