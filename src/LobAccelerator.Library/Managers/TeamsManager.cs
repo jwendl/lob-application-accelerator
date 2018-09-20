@@ -62,9 +62,9 @@ namespace LobAccelerator.Library.Managers
                     try
                     {
                         if (IsFile(resource))
-                            await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, resource);
+                            await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, channel.DisplayName, resource);
                         else
-                            await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, resource);
+                            await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, channel.DisplayName, resource);
                     }
                     catch (Exception ex)
                     {
