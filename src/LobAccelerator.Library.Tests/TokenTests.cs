@@ -27,8 +27,8 @@ namespace LobAccelerator.Library.Tests
             scopes = new string[] {
                 "Group.ReadWrite.All",
             };
-            var onBehalfOfResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(authResult.AccessToken,
-                scopes);
+            var onBehalfOfResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(scopes,
+                authResult.AccessToken);
 
             //Assert
             Assert.NotNull(onBehalfOfResult);
