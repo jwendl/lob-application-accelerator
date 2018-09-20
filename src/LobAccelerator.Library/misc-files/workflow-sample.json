@@ -12,18 +12,24 @@
       ],
       "channels": [
         {
-          "displayName": "my channel one",
+          "displayName": "Welcome!",
           "description": "my channel one description",
-          "azFilesFolderPath": "/team-files/",
+          "files": [
+            "TransferFiles/Welcome/Introduction/WelcomeCSE.pptx",
+            "TransferFiles/Welcome/Docs"
+          ],
           "members": [
             "jwendl@jwazuread.onmicrosoft.com",
             "testuser001@jwazuread.onmicrosoft.com"
           ]
         },
         {
-          "displayName": "my channel two",
+          "displayName": "Finance",
           "description": "my channel two description",
-          "azFilesFolderPath": "/team-files-alt/",
+          "files": [
+            "TransferFiles/Welcome/Docs/Finances.xlsx",
+            "Hotel.xlsx"
+          ],
           "members": [
             "jwendl@jwazuread.onmicrosoft.com",
             "testuser001@jwazuread.onmicrosoft.com"
