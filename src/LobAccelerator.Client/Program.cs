@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using LobAccelerator.Client.Extensions;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using System;
@@ -8,10 +9,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace LobAccelerator.Client
 {
-    partial class Program
+    public static class Program
     {
         static void Main(string[] args)
         {
@@ -107,7 +109,7 @@ namespace LobAccelerator.Client
             {
                 foreach (var file in files)
                 {
-                    var content = await File.ReadAllTextAsync(file);
+                    var content = await GetFileContentAsync(file);
                     var body = new StringContent(content, Encoding.UTF8, "application/json");
 
                     httpClient.DefaultRequestHeaders.Add("X-Authorization", $"bearer {accessToken}");
@@ -117,6 +119,31 @@ namespace LobAccelerator.Client
                 }
             }
 
+        }
+
+        private static async Task<string> GetFileContentAsync(string file)
+        {
+            var fileExtension = Path.GetExtension(file);
+            var fileContent = await File.ReadAllTextAsync(file);
+
+            return fileExtension.IsYaml()
+                ? ConvertYamlToJson(fileContent)
+                : fileContent;
+        }
+
+        private static string ConvertYamlToJson(string fileContent)
+        {
+            var reader = new StringReader(fileContent);
+
+            var deserializer = new Deserializer();
+            var yamlObject = deserializer.Deserialize(reader);
+
+            var serializer = new JsonSerializer();
+            var stringWriter = new StringWriter();
+
+            serializer.Serialize(stringWriter, yamlObject);
+
+            return stringWriter.ToString();
         }
     }
 }
