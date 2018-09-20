@@ -1,5 +1,6 @@
 #define SINGLEPASS
 #undef SINGLEPASS
+using LobAccelerator.App.Locators;
 using LobAccelerator.App.Models;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
@@ -10,9 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -37,7 +36,10 @@ namespace LobAccelerator.App.Functions
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            (bool valid, 
+            var accessToken = req.Headers.Authorization?.Parameter;
+            ServiceLocator.BuildServiceProvider(accessToken);
+
+            (bool valid,
             Workflow workflow,
             List<string> validationStrings) = await ValidateBodyAndAuth(req);
 
@@ -46,12 +48,11 @@ namespace LobAccelerator.App.Functions
 #endif
             if (valid)
             {
-                var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
-                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
+                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, accessToken);
 
                 foreach (var team in workflow.Teams)
                 {
-                    var newWorkflow = new Workflow
+                    var newWorkflow = new Workflow()
                     {
                         Teams = new List<TeamResource> { team }
                     };
@@ -73,7 +74,7 @@ namespace LobAccelerator.App.Functions
             var sb = new StringBuilder();
             foreach (var str in stringcollection)
             {
-                sb.AppendLine(str);                    
+                sb.AppendLine(str);
             }
 
             return sb.ToString();
@@ -114,11 +115,6 @@ namespace LobAccelerator.App.Functions
             return (valid, workflow, validationStrings);
         }
 
-        private static string ConvertAccessTokenToRefreshToken(Parameter acessToken)
-        {
-            return "NOT IMPLEMENTED YET";
-        }
-
         private static async Task<Parameter> CreateOrUpdateTokenParameter(
             Parameter parameter,
             IAsyncCollector<Parameter> tokenParameters,
@@ -130,7 +126,7 @@ namespace LobAccelerator.App.Functions
             }
             else
             {
-                parameter = new Parameter
+                parameter = new Parameter()
                 {
                     PartitionKey = PARAM_PARTITION_KEY,
                     RowKey = PARAM_TOKEN_ROW,

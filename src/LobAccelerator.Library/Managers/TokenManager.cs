@@ -11,7 +11,7 @@ namespace LobAccelerator.Library.Managers
 {
     public interface ITokenManager
     {
-        Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes);
+        Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes);
     }
 
     public class TokenManager
@@ -20,32 +20,92 @@ namespace LobAccelerator.Library.Managers
         private readonly IConfiguration configuration;
         private readonly ITokenCacheHelper tokenCacheHelper;
 
-        public TokenManager(IConfiguration configuration, ITokenCacheHelper tokenCacheHelper)
+        public TokenManager(IConfiguration configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            this.tokenCacheHelper = tokenCacheHelper ?? throw new ArgumentNullException(nameof(tokenCacheHelper));
+            this.tokenCacheHelper = new TokenCacheHelper(configuration);
         }
 
-        public async Task<AuthenticationResult> GetAccessTokenAsync(AuthenticationHeaderValue authenticationHeaderValue, IEnumerable<string> scopes)
+        public async Task<Uri> GetAuthUriAsync(IEnumerable<string> scopes)
         {
-            var clientTokenCache = new TokenCache();
-            var userTokenCache = tokenCacheHelper.FetchUserCache();
-            var appTokenCache = new TokenCache();
+            try
+            {
+                var clientTokenCache = new TokenCache();
+                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var appTokenCache = new TokenCache();
 
-            var msalApp = new ConfidentialClientApplication(
-                configuration["ApplicationId"],
-                configuration["RedirectUri"],
-                new ClientCredential(configuration["ApplicationSecret"]),
-                    userTokenCache,
-                    appTokenCache);
+                var msalApp = new ConfidentialClientApplication(
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                        userTokenCache,
+                        appTokenCache);
 
-            var user = new UserAssertion(authenticationHeaderValue.Parameter);
+                var result = await msalApp.GetAuthorizationRequestUrlAsync(scopes,
+                    null,
+                    null);
 
-            var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
-                user,
-                configuration["Authority"]);
+                return result;
+            }
+            catch (MsalException mse)
+            {
+                throw mse;
+            }
+        }
 
-            return result;
+        public async Task<AuthenticationResult> GetAccessTokenFromCodeAsync(string authCode, IEnumerable<string> scopes)
+        {
+            try
+            {
+                var clientTokenCache = new TokenCache();
+                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var appTokenCache = new TokenCache();
+
+                var msalApp = new ConfidentialClientApplication(
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                        userTokenCache,
+                        appTokenCache);
+
+                var result = await msalApp.AcquireTokenByAuthorizationCodeAsync(authCode, scopes);
+
+                return result;
+            }
+            catch (MsalException mse)
+            {
+                throw mse;
+            }
+        }
+
+        public async Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes)
+        {
+            try { 
+                var clientTokenCache = new TokenCache();
+                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var appTokenCache = new TokenCache();
+
+                var msalApp = new ConfidentialClientApplication(
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                        userTokenCache,
+                        appTokenCache);
+
+                //var user = new UserAssertion(accessToken);
+                var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
+                var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
+                    user,
+                    $"https://login.microsoftonline.com/{configuration["AzureAd:TenantId"]}");
+                //var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
+                //    user);
+
+                return result;
+            }
+            catch (MsalException mse)
+            {
+                throw mse;
+            }
         }
     }
 }

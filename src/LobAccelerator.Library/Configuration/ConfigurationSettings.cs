@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace LobAccelerator.Library.Configuration
 {
-    public class ConfigurationManager
+    public class ConfigurationSettings
         : IConfiguration
     {
         public IConfiguration Configuration { get; }
 
-        public ConfigurationManager()
+        public ConfigurationSettings()
         {
             Configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
