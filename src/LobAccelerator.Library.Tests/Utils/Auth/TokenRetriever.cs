@@ -28,13 +28,13 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
-            tenantId = configuration["AzureAd:TenantId"];
-            username = configuration["AzureAd:Username"];
-            password = configuration["AzureAd:Password"];
-            clientId = configuration["AzureAd:ClientId"];
-            clientSecret = configuration["AzureAd:ClientSecret"];
-            redirectUri = configuration["AzureAd:RedirectUri"];
-            resource = configuration["AzureAd:Resource"];
+            tenantId = configuration["TenantId"];
+            username = configuration["Username"];
+            password = configuration["Password"];
+            clientId = configuration["ClientId"];
+            clientSecret = configuration["ClientSecret"];
+            redirectUri = configuration["RedirectUri"];
+            resource = configuration["Resource"];
 
             TokenCaching = new Dictionary<string, AzureAdToken>();
         }
@@ -48,8 +48,8 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
             if (!TokenCaching.ContainsKey(scopes))
             {
-                string authorizationCode = await GetAuthorizationCode(scopes);
-                AzureAdToken token = await GetToken(authorizationCode, scopes);
+                string authorizationCode = await GetAuthorizationCodeAsync(scopes);
+                AzureAdToken token = await GetTokenAsync(authorizationCode, scopes);
 
                 TokenCaching.Add(scopes, token);
             }
@@ -57,7 +57,13 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             return TokenCaching[scopes];
         }
 
-        private async Task<string> GetAuthorizationCode(string scopes)
+        public async Task<string> GetAuthCodeByMsalUriAsync(Uri msalUri)
+        {
+            var authorizationCode = await GetAuthorizationCodeByMsalUriAsync(msalUri);
+            return authorizationCode;
+        }
+
+        private async Task<string> GetAuthorizationCodeAsync(string scopes)
         {
             string authorizeUrl =
                 string.Format("https://login.microsoftonline.com/{0}/oauth2/authorize",
@@ -71,14 +77,23 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
                 $"scope=api://{clientId}/access_as_user"
             };
 
-            string returnUrl = await LoginAndGetAuthCode(authorizeUrl, parameters);
+            string returnUrl = await LoginAndGetAuthCodeAsync(authorizeUrl, parameters);
 
             string authorizationCode = ExtractAuthorizationCodeFromReturn(returnUrl);
 
             return authorizationCode;
         }
 
-        private async Task<string> LoginAndGetAuthCode(string authorizeUrl, string[] parameters)
+        private async Task<string> GetAuthorizationCodeByMsalUriAsync(Uri msalUri)
+        {
+            string returnUrl = await LoginAndGetAuthCodeByMsalUriAsync(msalUri);
+
+            string authorizationCode = ExtractAuthorizationCodeFromReturn(returnUrl);
+
+            return authorizationCode;
+        }
+
+        private async Task<string> LoginAndGetAuthCodeAsync(string authorizeUrl, string[] parameters)
         {
             // Navigate to login page
             IWebDriver driver = new ChromeDriver(@"Loader")
@@ -109,7 +124,38 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             return returnUrl;
         }
 
-        private async Task<AzureAdToken> GetToken(string authorizationCode, string scopes)
+        private async Task<string> LoginAndGetAuthCodeByMsalUriAsync(Uri msalUri)
+        {
+            // Navigate to login page
+            IWebDriver driver = new ChromeDriver(@"Loader")
+            {
+                Url = msalUri.AbsoluteUri
+            };
+            await Task.Delay(1000);
+
+            // Login with username
+            driver.SendTextToTextBox("loginfmt", username);
+            driver.ClickOnButton("btn-primary");
+            await Task.Delay(1000);
+
+            // Login with password
+            driver.SendTextToTextBox("passwd", password);
+            driver.ClickOnButton("btn-primary");
+            await Task.Delay(1000);
+
+            // Confirms to store credentials
+            //driver.ClickOnButton("btn-primary");
+
+            // Receive Authorization code
+            var returnUrl = driver.Url;
+
+            // Close browser
+            driver.Close();
+
+            return returnUrl;
+        }
+
+        private async Task<AzureAdToken> GetTokenAsync(string authorizationCode, string scopes)
         {
             string tokenUrl =
                 string.Format("https://login.microsoftonline.com/{0}/oauth2/token",

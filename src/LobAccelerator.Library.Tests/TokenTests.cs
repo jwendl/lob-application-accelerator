@@ -1,7 +1,6 @@
-﻿using LobAccelerator.Library.Tests.Utils.Auth;
+﻿using LobAccelerator.Library.Managers;
+using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -10,29 +9,31 @@ namespace LobAccelerator.Library.Tests
     public class TokenTests
     {
         [Fact]
-        public async Task RetrieveTokenByAuthorizationCodeFlow()
+        public async Task TokenManager()
         {
             //Arrange
             var configuration = new ConfigurationManager();
             var tokenRetriever = new TokenRetriever(configuration);
-            var scopes = new string[] { "Group.ReadWrite.All" };
+            var tokenManager = new TokenManager(configuration);
+            var scopes = new string[] {
+                $"api://{configuration["ClientId"]}/access_as_user"
+            };
 
             //Act
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
-            var returnedScopes = token.scope.Split(' ');
-            var intersectionOfScopes = returnedScopes.Intersect(scopes);
+            var uri = await tokenManager.GetAuthUriAsync(scopes);
+            var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
+            var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
+
+            scopes = new string[] {
+                "Group.ReadWrite.All",
+            };
+            var onBehalfOfResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(authResult.AccessToken,
+                scopes);
 
             //Assert
-            Assert.NotNull(token);
-            Assert.NotNull(token.access_token);
-            Assert.NotNull(token.refresh_token);
-            Assert.NotNull(token.id_token);
-            Assert.Equal("Bearer", token.token_type);
-            Assert.True(int.Parse(token.expires_in) > 3500);
-            Assert.NotEmpty(returnedScopes);
-            Assert.True(intersectionOfScopes.Count() == scopes.Count());
-            Assert.Equal(configuration["AzureAd:Resource"], token.resource);
+            Assert.NotNull(onBehalfOfResult);
         }
+
 
         [Fact]
         public async Task ValidateAccessToken()
@@ -41,14 +42,13 @@ namespace LobAccelerator.Library.Tests
             var configuration = new ConfigurationManager();
             var tokenRetriever = new TokenRetriever(configuration);
             var scopes = new string[] { "Group.ReadWrite.All",
-                $"api://{configuration["AzureAd:ClientId"]}/access_as_user" };
-            var expectedAudience = configuration["AzureAd:ExpectedAudience"];
-            var expectedIssuer = configuration["AzureAd:ExpectedIssuer"];
+                $"api://{configuration["ClientId"]}/access_as_user" };
+            var expectedAudience = configuration["ExpectedAudience"];
+            var expectedIssuer = configuration["ExpectedIssuer"];
 
             //Act
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
-            var header = new AuthenticationHeaderValue("Bearer", token.access_token);
-            //var validation = await AuthHelper.ValidateTokenAsync(header, expectedIssuer, expectedAudience, scopes);
+            //var validation = await AuthHelper.ValidateTokenAsync(token.access_token, expectedIssuer, expectedAudience, scopes);
 
             //Assert
             // We will only validate the On-behalf-of tokens...

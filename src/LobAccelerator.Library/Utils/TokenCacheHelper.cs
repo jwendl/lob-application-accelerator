@@ -2,6 +2,7 @@
 using Microsoft.Identity.Client;
 using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Utils
 {
@@ -48,21 +49,28 @@ namespace LobAccelerator.Library.Utils
         {
             lock (FileLock)
             {
-                args.TokenCache.Deserialize(
-                    StorageHelper.BlobExistsAsync(
+                var existTask = StorageHelper.BlobExistsAsync(
                         configuration["StorageConnectionString"],
                         configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"])
-                        .GetAwaiter().GetResult() //task.wait (s)
-                    ? ProtectedData.Unprotect(
-                        StorageHelper.DownloadBlobAsync(
-                            configuration["StorageConnectionString"],
-                            configuration["TokenCacheContainerName"],
-                            configuration["TokenCacheBlobName"])
-                        .GetAwaiter().GetResult(),
-                        null,
-                        DataProtectionScope.CurrentUser)
-                    : null);
+                        configuration["TokenCacheBlobName"]);
+
+                Task.WaitAll(existTask);
+
+                if (existTask.Result)
+                {
+                    var fileTask = StorageHelper.DownloadBlobAsync(
+                        configuration["StorageConnectionString"],
+                        configuration["TokenCacheContainerName"],
+                        configuration["TokenCacheBlobName"]);
+
+                    Task.WaitAll(fileTask);
+
+                    args.TokenCache.Deserialize(ProtectedData.Unprotect(fileTask.Result, null, DataProtectionScope.CurrentUser));
+                }
+                else
+                {
+                    args.TokenCache.Deserialize(null);
+                }
             }
         }
 
@@ -73,15 +81,14 @@ namespace LobAccelerator.Library.Utils
             {
                 lock (FileLock)
                 {
-                    // reflect changes in the persistent store
-                    StorageHelper.UploadBlobAsync(
-                        configuration["StorageConnectionString"],
-                        configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"],
-                        ProtectedData.Protect(args.TokenCache.Serialize(),
-                                                null,
-                                                DataProtectionScope.CurrentUser)
-                        ).GetAwaiter().GetResult();
+                    var fileTask = StorageHelper.UploadBlobAsync(
+                            configuration["StorageConnectionString"],
+                            configuration["TokenCacheContainerName"],
+                            configuration["TokenCacheBlobName"],
+                            ProtectedData.Protect(args.TokenCache.Serialize(), null, DataProtectionScope.CurrentUser));
+
+                    Task.WaitAll(fileTask);
+
                     // once the write operationtakes place restore the HasStateChanged bit to filse
                     args.TokenCache.HasStateChanged = false;
                 }
