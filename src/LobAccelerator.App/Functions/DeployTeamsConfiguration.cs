@@ -10,20 +10,21 @@ namespace LobAccelerator.App.Functions
 {
     public static class DeployTeamsConfiguration
     {
-        //[Disable]
         [FunctionName("DeployTeamsConfiguration")]
         public static void Run(
             [QueueTrigger(REQUEST_QUEUE)]
             Workflow workflow,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
-            Parameter refreshToken,
+            Parameter accessToken,
             ILogger log)
         {
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
 
-            IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
+            ServiceLocator.BuildServiceProvider(accessToken.Value);
 
-            workflowManager.CreateResourceAsync(workflow).Wait();
+            var workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
+
+            workflowManager.CreateResourceAsync(workflow);
         }
     }
 }
