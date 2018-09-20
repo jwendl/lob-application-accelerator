@@ -3,11 +3,12 @@
     {
       "displayName": "My MS Teams Group",
       "description": "My MS Teams Group Description",
+      "mailNickName": "my1teaamsgroup",
       "members": [
-        "juanr@microsoft.com",
-        "juswen@microsoft.com",
-        "tedistef@microsoft.com",
-        "altagin@microsoft.com"
+        "jwendl@jwazuread.onmicrosoft.com",
+        "testuser001@jwazuread.onmicrosoft.com",
+        //"tedistef@jwazuread.onmicrosoft.com",
+        "altagin@jwazuread.onmicrosoft.com"
       ],
       "channels": [
         {
@@ -15,8 +16,8 @@
           "description": "my channel one description",
           "azFilesFolderPath": "/team-files/",
           "members": [
-            "juanr@microsoft.com",
-            "juswen@microsoft.com"
+            "jwendl@jwazuread.onmicrosoft.com",
+            "testuser001@jwazuread.onmicrosoft.com"
           ]
         },
         {
@@ -24,10 +25,36 @@
           "description": "my channel two description",
           "azFilesFolderPath": "/team-files-alt/",
           "members": [
-            "tedistef@microsoft.com",
-            "juswen@microsoft.com",
-            "andrg@microsoft.com",
-            "altagin@microsoft.com"
+            "jwendl@jwazuread.onmicrosoft.com",
+            "testuser001@jwazuread.onmicrosoft.com"
+          ]
+        }
+      ]
+    },
+    {
+      "displayName": "My Second Teams Group",
+      "description": "My Second Teams Group Description",
+      "mailNickName": "my1teaamsgroup",
+      "members": [
+        "testuser001@jwazuread.onmicrosoft.com",
+        "jwendl@jwazuread.onmicrosoft.com"
+
+      ],
+      "channels": [
+        {
+          "displayName": "Second team my channel one",
+          "description": "Second team my channel one description",
+          "azFilesFolderPath": "/team-files-2/",
+          "members": [
+            "testuser001@jwazuread.onmicrosoft.com"
+          ]
+        },
+        {
+          "displayName": "my channel two",
+          "description": "my channel two description",
+          "azFilesFolderPath": "/team-files-alt/",
+          "members": [
+            "jwendl@jwazuread.onmicrosoft.com"
           ]
         }
       ]
