@@ -12,12 +12,12 @@ namespace LobAccelerator.Library.Validators
             return Validate(teamsJsonConfiguration, out var dummy);
         }
 
-        public bool Validate(TeamResource teamsJsonConfiguration,  out TeamsInputValidation validation)
+        public bool Validate(TeamResource teamsJsonConfiguration, out TeamsInputValidation validation)
         {
             var rta = true;
             validation = new TeamsInputValidation();
 
-           if (teamsJsonConfiguration == null)
+            if (teamsJsonConfiguration == null)
             {
                 validation = TeamsInputValidation.InvalidTeamsConfigObject;
                 rta = false;
@@ -29,13 +29,13 @@ namespace LobAccelerator.Library.Validators
                     validation = TeamsInputValidation.TeamNameIsNotValid;
                     rta = false;
                 }
-                else if (teamsJsonConfiguration.Members == null 
+                else if (teamsJsonConfiguration.Members == null
                     || teamsJsonConfiguration.Members?.Count() == 0)
                 {
                     validation = TeamsInputValidation.TeamHasntMembers;
                     rta = false;
                 }
-                else if (teamsJsonConfiguration.Channels == null 
+                else if (teamsJsonConfiguration.Channels == null
                     || teamsJsonConfiguration.Channels?.Count() == 0)
                 {
                     validation = TeamsInputValidation.TeamHasntChannels;
@@ -56,7 +56,7 @@ namespace LobAccelerator.Library.Validators
             return rta;
         }
 
-        private bool ValidateDuplicateUsersOnTeam(TeamResource teamsJsonConfiguration, 
+        private bool ValidateDuplicateUsersOnTeam(TeamResource teamsJsonConfiguration,
             ref TeamsInputValidation validation)
         {
             var rta = true;

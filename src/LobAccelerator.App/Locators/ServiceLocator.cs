@@ -23,7 +23,13 @@ namespace LobAccelerator.App.Locators
             {
                 var tokenManager = sp.GetRequiredService<ITokenManager>();
                 var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, accessToken);
-                return new HttpClient(tokenManagerHttpMessageHandler);
+
+                var httpClient = new HttpClient(tokenManagerHttpMessageHandler)
+                {
+                    BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["GraphBaseUri"])
+                };
+
+                return httpClient;
             });
             serviceCollection.AddSingleton<ITeamsManager, TeamsManager>();
             serviceCollection.AddSingleton<IOneDriveManager, OneDriveManager>();
