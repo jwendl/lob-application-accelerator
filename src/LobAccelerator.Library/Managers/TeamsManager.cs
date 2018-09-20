@@ -56,6 +56,9 @@ namespace LobAccelerator.Library.Managers
 
             foreach (var channel in channels)
             {
+                //TODO: Remove the following call when the bug of not creating a folder for a channel is fixed.
+                await CreateChannelFolderOnGroupDocumentLibrary(teamId, channel.DisplayName);
+
                 foreach (var resource in channel.Files)
                 {
                     var result = new Result<NoneResult>();
@@ -76,6 +79,23 @@ namespace LobAccelerator.Library.Managers
             }
 
             return Result.Combine(results);
+        }
+
+        private async Task CreateChannelFolderOnGroupDocumentLibrary(string teamId, string channelName)
+        {
+            var url = $"https://graph.microsoft.com/beta/groups/{teamId}/drive/root/children/";
+
+            var requestBody = new
+            {
+                name = channelName,
+                folder = new { }
+            };
+
+            var requestBodyStr = JsonConvert.SerializeObject(requestBody);
+            var body = new StringContent(requestBodyStr, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(url, body);
+            response.EnsureSuccessStatusCode();
         }
 
         private bool IsFile(string input)
