@@ -1,4 +1,5 @@
-﻿using LobAccelerator.Library.Factories;
+﻿using LobAccelerator.Library.Configuration;
+using LobAccelerator.Library.Factories;
 using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
 using System;
@@ -11,10 +12,14 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly ITeamsManager teamsManager;
         private readonly IOneDriveManager oneDriveManager;
+        private readonly ITokenManager tokenManager;
+        private readonly ConfigurationManager configurationManager;
 
         public WorkflowManager(string accessToken)
         {
-            var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
+            configurationManager = new ConfigurationManager();
+            tokenManager = new TokenManager(configurationManager);
+            var httpClient = GraphClientFactory.CreateHttpClient(tokenManager, accessToken);
 
             teamsManager = new TeamsManager(httpClient);
             oneDriveManager = new OneDriveManager(httpClient);

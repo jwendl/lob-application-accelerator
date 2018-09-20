@@ -15,8 +15,10 @@ namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
+        private static readonly ConfigurationManager configurationManager =
+            new ConfigurationManager();
         private static readonly TokenRetriever tokenRetriever
-            = new TokenRetriever(new ConfigurationManager());
+            = new TokenRetriever(configurationManager);
 
         public Workflow CreateWorkflow(int teamNumber)
         {
@@ -169,10 +171,15 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
-                "Group.ReadWrite.All", 
-                "User.ReadBasic.All");
-            var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
+            string[] scopes =
+            {
+                "Group.ReadWrite.All",
+                "User.ReadBasic.All"
+            };
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
+            var tokenManager = new TokenManager(configurationManager);
+            var httpClient = GraphClientFactory.CreateHttpClient(tokenManager, token.access_token);
+            httpClient.DefaultRequestHeaders.Add("X-TMScopes", scopes);
             return httpClient;
         }
     }
