@@ -23,9 +23,12 @@ namespace LobAccelerator.App.Functions
             var workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
            
             workflowManager.CreateResourceAsync(workflow);
+<<<<<<< HEAD
             var tmpTeam = workflow.Teams.FirstOrDefault();
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
             log.LogInformation($"{tmpTeam.DisplayName} team created, {tmpTeam.Channels.Count()} channels, {tmpTeam.Members.Count()} members and configurations Done!");
+=======
+>>>>>>> Integration with Teams API development and support for multiple teams request in a single file
         }
     }
 }
