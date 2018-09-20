@@ -1,6 +1,8 @@
 #define SINGLEPASS
 #undef SINGLEPASS
+using LobAccelerator.App.Locators;
 using LobAccelerator.App.Models;
+using LobAccelerator.Library.Extensions;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Validators;
@@ -10,14 +12,12 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using static LobAccelerator.App.Util.GlobalSettings;
+using static LobAccelerator.App.Extensions.ConstantsExtension;
+
 
 namespace LobAccelerator.App.Functions
 {
@@ -25,7 +25,7 @@ namespace LobAccelerator.App.Functions
     {
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
+            [HttpTrigger(AuthorizationLevel.Function, "post")]
             HttpRequestMessage req,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
             Parameter parameter,
@@ -35,23 +35,25 @@ namespace LobAccelerator.App.Functions
             CloudQueue  queue,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            var accessToken = req.Headers.Authorization?.Parameter;
+            ServiceLocator.BuildServiceProvider(log, accessToken);
 
-            (bool valid, 
+            (bool valid,
             Workflow workflow,
             List<string> validationStrings) = await ValidateBodyAndAuth(req);
 
 #if SINGLEPASS
+            log.LogDebug("DEBUG: Single pass mode executing a single team/workflow entry");
             workflow.Teams = new List<TeamResource> { workflow.Teams.First() };
 #endif
+            log.LogInformation($"C# HTTP trigger function processing a {(!valid ? "in" : string.Empty)}valid request.");
             if (valid)
             {
-                var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
-                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
+                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, accessToken);
 
                 foreach (var team in workflow.Teams)
                 {
-                    var newWorkflow = new Workflow
+                    var newWorkflow = new Workflow()
                     {
                         Teams = new List<TeamResource> { team }
                     };
@@ -59,24 +61,15 @@ namespace LobAccelerator.App.Functions
                     var requestBody = JsonConvert.SerializeObject(newWorkflow);
                     await queue.AddMessageAsync(new CloudQueueMessage(requestBody));
                 }
+                log.LogInformation($"{workflow.Teams.Count()} Teams has been schedulled for creation");
             }
 
-            var responseString = GetLinesFromStringCollection(validationStrings);
+            var responseString = validationStrings.ToStringLines();
+            log.LogInformation("C# HTTP trigger function has completely processed a request.");
 
-            return valid
-            ? (ActionResult)new OkObjectResult($"{workflow.Teams.Count()} Teams are schedulled for creation")
-            : new BadRequestObjectResult($"Invalid HttpRequest, reason: {responseString}");
-        }
-
-        private static string GetLinesFromStringCollection(IEnumerable<string> stringcollection)
-        {
-            var sb = new StringBuilder();
-            foreach (var str in stringcollection)
-            {
-                sb.AppendLine(str);                    
-            }
-
-            return sb.ToString();
+            return valid ? (ActionResult)new OkObjectResult(
+                        $"{workflow.Teams.Count()} Teams are schedulled for creation")
+                        : new BadRequestObjectResult($"Invalid HttpRequest, reason: {responseString}");
         }
 
         private static async Task<(bool, Workflow, List<string>)>
@@ -114,11 +107,6 @@ namespace LobAccelerator.App.Functions
             return (valid, workflow, validationStrings);
         }
 
-        private static string ConvertAccessTokenToRefreshToken(Parameter acessToken)
-        {
-            return "NOT IMPLEMENTED YET";
-        }
-
         private static async Task<Parameter> CreateOrUpdateTokenParameter(
             Parameter parameter,
             IAsyncCollector<Parameter> tokenParameters,
@@ -130,7 +118,7 @@ namespace LobAccelerator.App.Functions
             }
             else
             {
-                parameter = new Parameter
+                parameter = new Parameter()
                 {
                     PartitionKey = PARAM_PARTITION_KEY,
                     RowKey = PARAM_TOKEN_ROW,

@@ -6,10 +6,16 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "ApplicationId": "398917db-d35d-4bd9-81cf-c3ff85c60e12",
     "ApplicationSecret": "\"zbcaLUJ551[(ualTOPF99:$,",
-    "Authority": "",
-    "RedirectUri": "https://localhost/",
     "StorageConnectionString": "UseDevelopmentStorage=true;",
-    "TokenCacheContainerName": "TokenCacheContainer",
-    "TokenCacheBlobName": "TokenCacheBlob"
+    "TokenCacheContainerName": "tokencachecontainer",
+    "TokenCacheBlobName": "TokenCacheBlob",
+    "TenantId": "453b8921-be44-49ec-bd3c-87414db10cb2",
+    "ExpectedIssuer": "https://login.microsoftonline.com/453b8921-be44-49ec-bd3c-87414db10cb2/v2.0",
+    "ExpectedAudience": "398917db-d35d-4bd9-81cf-c3ff85c60e12",
+    "ClientId": "398917db-d35d-4bd9-81cf-c3ff85c60e12",
+    "ClientSecret": "zbcaLUJ551[(ualTOPF99:$",
+    "RedirectUri": "https://localhost/",
+    "Resource": "https://graph.microsoft.com/",
+    "GraphBaseUri": "https://graph.microsoft.com/"
   }
 }
