@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
+﻿using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace LobAccelerator.Library.Managers
 {
     public class TokenManagerHttpMessageHandler : DelegatingHandler
     {
-        private ITokenManager tokenManager;
-        private string accessToken;
+        private readonly ITokenManager tokenManager;
+        private readonly string accessToken;
 
         public TokenManagerHttpMessageHandler(ITokenManager tokenManager, string accessToken)
         {
@@ -22,8 +18,8 @@ namespace LobAccelerator.Library.Managers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var scopes = request.Headers.GetValues("X-TMScopes");
-            var authResult = await this.tokenManager.GetAccessTokenAsync(this.accessToken, scopes);
-            if(authResult != null)
+            var authResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(accessToken, scopes);
+            if (authResult != null)
             {
                 request.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResult.AccessToken);

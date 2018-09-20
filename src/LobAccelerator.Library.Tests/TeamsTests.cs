@@ -1,9 +1,9 @@
-using LobAccelerator.Library.Factories;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +62,7 @@ namespace LobAccelerator.Library.Tests
                 }
             };
         }
-        
+
         [Fact]
         public async Task AddNewGroup()
         {
@@ -132,7 +132,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            
+
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
@@ -178,7 +178,8 @@ namespace LobAccelerator.Library.Tests
             };
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var tokenManager = new TokenManager(configurationManager);
-            var httpClient = GraphClientFactory.CreateHttpClient(tokenManager, token.access_token);
+            //var httpClient = GraphClientFactory.CreateHttpClient(tokenManager);
+            var httpClient = Substitute.For<HttpClient>();
             httpClient.DefaultRequestHeaders.Add("X-TMScopes", scopes);
             return httpClient;
         }
