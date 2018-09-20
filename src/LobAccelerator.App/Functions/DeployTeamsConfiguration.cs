@@ -16,11 +16,12 @@ namespace LobAccelerator.App.Functions
             [QueueTrigger(REQUEST_QUEUE)]
             Workflow workflow,
             [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
-            Parameter refreshToken,
+            Parameter accessToken,
             ILogger log)
         {
-            IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
-
+            ServiceLocator.BuildServiceProvider(accessToken.Value);
+            var workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
+           
             workflowManager.CreateResourceAsync(workflow);
             var tmpTeam = workflow.Teams.FirstOrDefault();
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
