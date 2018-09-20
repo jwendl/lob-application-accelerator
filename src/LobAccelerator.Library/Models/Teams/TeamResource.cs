@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using LobAccelerator.Library.Utils;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -61,6 +63,8 @@ namespace LobAccelerator.Library.Models.Teams
                 AllowGiphy = true,
                 GiphyContentRating = "strict",
             };
+
+            MailNickname = RandomHelper.GetRandomString(10);
         }
     }
 }
