@@ -3,7 +3,6 @@ using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -227,7 +226,7 @@ namespace LobAccelerator.Library.Tests
         private async Task<HttpClient> GetHttpClientAsync()
         {
             var scopes = new string[] {
-                $"api://{configurationManager["AzureAd:ClientId"]}/access_as_user"
+                $"api://{configurationManager["ClientId"]}/access_as_user"
             };
             var tokenManager = new TokenManager(configurationManager);
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);

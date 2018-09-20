@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,9 +60,9 @@ namespace LobAccelerator.Client
             var configuration = new ConfigurationManager(options.ConfigurationFile);
 
             IEnumerable<string> files = options.DefinitionsFiles;
-            string resource = configuration["AzureAd:Resource"];
-            string clientId = configuration["AzureAd:ClientId"];
-            string url = configuration["LobEngine:Endpoint"];
+            string resource = configuration["Resource"];
+            string clientId = configuration["ClientId"];
+            string url = configuration["Endpoint"];
 
             DisplayInfoMessage("Input validated...");
 
