@@ -148,6 +148,35 @@ namespace LobAccelerator.Library.Tests
         }
 
         [Fact]
+        public async Task AddInvalidPeopleToChannel()
+        {
+            //Arrange
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
+            team.Members = new List<string>()
+                        {
+                            "jwendl@jwazuread.onmicrosoft.com",
+                            "testuser001@jwazuread.onmicrosoft.com",
+                            "user@othertenat.onmicrosoft.com"
+                        };
+
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var groupResult = await teamsManager.CreateGroupAsync(team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var membersResult = await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Value.Id);
+
+            //Assert
+            Assert.True(membersResult.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
+        }
+
+        [Fact]
         public async Task AddAllResources()
         {
             //Arrange

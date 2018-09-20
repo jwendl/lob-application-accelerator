@@ -8,6 +8,7 @@ using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -146,17 +147,27 @@ namespace LobAccelerator.Library.Managers
 
             foreach (var member in members)
             {
-                var user = await GetUserAsync(member);
-                var result = new Result<NoneResult>();
-                var channelObj = new CreateChannelGraphObject(user.Value);
-                var response = await httpClient.PostContentAsync(addMemberUrl, channelObj);
-                var responseString = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
+                var result = new Result<NoneResult>();
+                try
+                {
+                    var user = await GetUserAsync(member);
+                    var channelObj = new CreateChannelGraphObject(user.Value);
+                    var response = await httpClient.PostContentAsync(addMemberUrl, channelObj);
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        result.HasError = true;
+                        result.Error = response.ReasonPhrase;
+                        result.DetailedError = responseString;
+                    }
+                }
+                catch (Exception ex)
                 {
                     result.HasError = true;
-                    result.Error = response.ReasonPhrase;
-                    result.DetailedError = responseString;
+                    result.Error = ex.Message;
+                    result.DetailedError = JsonConvert.SerializeObject(ex);
                 }
 
                 results.Add(result);
