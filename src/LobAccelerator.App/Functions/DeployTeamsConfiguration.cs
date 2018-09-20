@@ -10,7 +10,6 @@ namespace LobAccelerator.App.Functions
 {
     public static class DeployTeamsConfiguration
     {
-        //[Disable]
         [FunctionName("DeployTeamsConfiguration")]
         public static void Run(
             [QueueTrigger(REQUEST_QUEUE)]
@@ -23,7 +22,7 @@ namespace LobAccelerator.App.Functions
 
             IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
-            workflowManager.CreateResourceAsync(workflow).Wait();
+            workflowManager.CreateResourceAsync(workflow);
         }
     }
 }
