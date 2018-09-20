@@ -18,15 +18,16 @@ namespace LobAccelerator.Library.Managers
             teamsManager = new TeamsManager(httpClient);
         }
 
-        public async Task CreateResourceAsync(Workflow resource)
+        public async Task CreateAllResourceAsync(Workflow resource)
         {
             foreach (var team in resource.Teams)
                 await teamsManager.CreateResourceAsync(team);
         }
 
-        Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)
+        public async Task<IResult> CreateResourceAsync(Workflow resource)
         {
-            throw new NotImplementedException();
+            await CreateAllResourceAsync(resource);
+            return null;
         }
     }
 }
