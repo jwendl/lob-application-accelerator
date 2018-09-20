@@ -1,10 +1,8 @@
 ﻿using CommandLine;
 using LobAccelerator.Client.Extensions;
 using LobAccelerator.Client.Models;
+using LobAccelerator.Client.Models.Common;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Client
@@ -35,23 +33,19 @@ namespace LobAccelerator.Client
 
         private static async Task RunOptionAsync(Options options)
         {
-            ValidateInput(options);
-
             ConsoleExtensions.DisplayInfoMessage("Sending request...");
 
-            var manager = new LobManager(options);
-            await manager.ProvisionResourcesAsync();
+            Result<LobManager> managerResult = LobManager.Create(options);
+            Result<None> provisionResult = await managerResult.Value.ProvisionResourcesAsync();
+
+            var result = Result.Combine(managerResult, provisionResult);
+
+            if (result.HasError())
+            {
+                throw new InvalidOperationException(managerResult.Error);
+            }
 
             ConsoleExtensions.DisplaySuccessMessage("Done!");
-        }
-        
-        private static void ValidateInput(Options options)
-        {
-            if (!options.DefinitionsFiles.All(f => File.Exists(f)))
-                throw new FileNotFoundException("A definition file was not found.");
-
-            if (!File.Exists(options.ConfigurationFile))
-                throw new FileNotFoundException("The configuration file was not found.");
         }
     }
 }
