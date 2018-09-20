@@ -1,9 +1,9 @@
-using LobAccelerator.Library.Factories;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +15,10 @@ namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
+        private static readonly ConfigurationManager configurationManager =
+            new ConfigurationManager();
         private static readonly TokenRetriever tokenRetriever
-            = new TokenRetriever(new ConfigurationManager());
+            = new TokenRetriever(configurationManager);
 
         public Workflow CreateWorkflow(int teamNumber)
         {
@@ -67,8 +69,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var result = await teamsManager.CreateGroupAsync(team);
@@ -87,8 +88,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -108,8 +108,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            TeamsManager teamsManager = await CreateTeamsManager();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -124,6 +123,13 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.DeleteChannelAsync(groupId);
         }
 
+        private async Task<TeamsManager> CreateTeamsManager()
+        {
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient, new OneDriveManager(httpClient));
+            return teamsManager;
+        }
+
         [Fact]
         public async Task AddPeopleToChannel()
         {
@@ -131,8 +137,7 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
 
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -160,8 +165,7 @@ namespace LobAccelerator.Library.Tests
                             "user@othertenat.onmicrosoft.com"
                         };
 
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -182,8 +186,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var result = await teamsManager.CreateResourceAsync(team);
@@ -208,8 +211,7 @@ namespace LobAccelerator.Library.Tests
                 "TransferFiles/Welcome/Docs",
                 "Hotel.xlsx"
             };
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient);
+            var teamsManager = await CreateTeamsManager();
 
             //Act
             var result = await teamsManager.CreateResourceAsync(team);
@@ -224,10 +226,17 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClient()
         {
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
+            string[] scopes =
+            {
                 "Group.ReadWrite.All",
-                "User.ReadBasic.All");
-            var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
+                "User.ReadBasic.All"
+            };
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
+            var tokenManager = new TokenManager(configurationManager);
+
+            var httpClient = Substitute.For<HttpClient>();
+            httpClient.DefaultRequestHeaders.Add("X-TMScopes", scopes);
+
             return httpClient;
         }
     }

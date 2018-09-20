@@ -1,7 +1,5 @@
-﻿using LobAccelerator.Library.Factories;
-using LobAccelerator.Library.Interfaces;
+﻿using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
-using System;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
@@ -11,14 +9,12 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly ITeamsManager teamsManager;
 
-        public WorkflowManager(string accessToken)
+        public WorkflowManager(ITeamsManager teamsManager)
         {
-            var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
-
-            teamsManager = new TeamsManager(httpClient);
+            this.teamsManager = teamsManager;
         }
 
-        public async Task CreateResourceAsync(Workflow resource)
+        public async Task CreateAllResourceAsync(Workflow resource)
         {
             foreach (var team in resource.Teams)
             {
@@ -26,9 +22,10 @@ namespace LobAccelerator.Library.Managers
             }
         }
 
-        Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)
+        public async Task<IResult> CreateResourceAsync(Workflow resource)
         {
-            throw new NotImplementedException();
+            await CreateAllResourceAsync(resource);
+            return null;
         }
     }
 }

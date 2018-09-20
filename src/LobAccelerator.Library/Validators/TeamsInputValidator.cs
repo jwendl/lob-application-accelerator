@@ -7,22 +7,17 @@ namespace LobAccelerator.Library.Validators
     public class TeamsInputValidator
     {
 
-        public bool Validate(TeamResource teamsJsonConfiguration, bool hastoken)
+        public bool Validate(TeamResource teamsJsonConfiguration)
         {
-            return Validate(teamsJsonConfiguration, hastoken, out var dummy);
+            return Validate(teamsJsonConfiguration, out var dummy);
         }
 
-        public bool Validate(TeamResource teamsJsonConfiguration, bool hastoken, out TeamsInputValidation validation)
+        public bool Validate(TeamResource teamsJsonConfiguration,  out TeamsInputValidation validation)
         {
             var rta = true;
             validation = new TeamsInputValidation();
 
-            if (!hastoken)
-            {
-                validation = TeamsInputValidation.NoAuthToken;
-                rta = false;
-            }
-            else if (teamsJsonConfiguration == null)
+           if (teamsJsonConfiguration == null)
             {
                 validation = TeamsInputValidation.InvalidTeamsConfigObject;
                 rta = false;

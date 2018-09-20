@@ -25,12 +25,12 @@ namespace LobAccelerator.Library.Managers
         private readonly HttpResponseMessage responseDeletePerm;
         private readonly IOneDriveManager oneDriveManager;
 
-        public TeamsManager(HttpClient httpClient)
+        public TeamsManager(HttpClient httpClient, IOneDriveManager oneDriveManager)
         {
             this.httpClient = httpClient;
             _apiVersion = ConstantsExtension.TeamsApiVersion;
 
-            oneDriveManager = new OneDriveManager(httpClient);
+            this.oneDriveManager = oneDriveManager;
         }
 
         public async Task<IResult> CreateResourceAsync(TeamResource resource)

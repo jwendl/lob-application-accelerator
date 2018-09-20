@@ -42,5 +42,25 @@ namespace LobAccelerator.Library.Models.Teams
         [JsonProperty("channels")]
         [Description("Channels to add to this team.")]
         public IEnumerable<ChannelResource> Channels { get; set; }
+
+        public TeamResource()
+        {
+            MemberSettings = new MemberSettings()
+            {
+                AllowCreateUpdateChannels = true,
+            };
+
+            MessagingSettings = new MessagingSettings()
+            {
+                AllowUserEditMessages = true,
+                AllowUserDeleteMessages = false
+            };
+
+            FunSettings = new FunSettings()
+            {
+                AllowGiphy = true,
+                GiphyContentRating = "strict",
+            };
+        }
     }
 }
