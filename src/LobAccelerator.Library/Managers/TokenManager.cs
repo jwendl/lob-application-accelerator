@@ -11,7 +11,7 @@ namespace LobAccelerator.Library.Managers
 {
     public interface ITokenManager
     {
-        Task<AuthenticationResult> GetAccessTokenAsync(string accessToken, IEnumerable<string> scopes);
+        Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes);
     }
 
     public class TokenManager
@@ -26,7 +26,59 @@ namespace LobAccelerator.Library.Managers
             this.tokenCacheHelper = new TokenCacheHelper(configuration);
         }
 
-        public async Task<AuthenticationResult> GetAccessTokenAsync(string accessToken, IEnumerable<string> scopes)
+        public async Task<Uri> GetAuthUriAsync(IEnumerable<string> scopes)
+        {
+            try
+            {
+                var clientTokenCache = new TokenCache();
+                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var appTokenCache = new TokenCache();
+
+                var msalApp = new ConfidentialClientApplication(
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                        userTokenCache,
+                        appTokenCache);
+
+                var result = await msalApp.GetAuthorizationRequestUrlAsync(scopes,
+                    null,
+                    null);
+
+                return result;
+            }
+            catch (MsalException mse)
+            {
+                throw mse;
+            }
+        }
+
+        public async Task<AuthenticationResult> GetAccessTokenFromCodeAsync(string authCode, IEnumerable<string> scopes)
+        {
+            try
+            {
+                var clientTokenCache = new TokenCache();
+                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var appTokenCache = new TokenCache();
+
+                var msalApp = new ConfidentialClientApplication(
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                        userTokenCache,
+                        appTokenCache);
+
+                var result = await msalApp.AcquireTokenByAuthorizationCodeAsync(authCode, scopes);
+
+                return result;
+            }
+            catch (MsalException mse)
+            {
+                throw mse;
+            }
+        }
+
+        public async Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes)
         {
             try { 
                 var clientTokenCache = new TokenCache();
@@ -34,18 +86,19 @@ namespace LobAccelerator.Library.Managers
                 var appTokenCache = new TokenCache();
 
                 var msalApp = new ConfidentialClientApplication(
-                    configuration["ApplicationId"],
-                    configuration["RedirectUri"],
-                    new ClientCredential(configuration["ApplicationSecret"]),
+                    configuration["AzureAd:ClientId"],
+                    configuration["AzureAd:RedirectUri"],
+                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
 
-                msalApp.ValidateAuthority = false;
-
-                var user = new UserAssertion(accessToken);
+                //var user = new UserAssertion(accessToken);
+                var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
                 var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                     user,
-                    configuration["Authority"]);
+                    $"https://login.microsoftonline.com/{configuration["AzureAd:TenantId"]}");
+                //var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
+                //    user);
 
                 return result;
             }
