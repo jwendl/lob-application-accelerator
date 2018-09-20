@@ -1,9 +1,6 @@
 ﻿using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using Microsoft.Identity.Client;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 
