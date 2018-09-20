@@ -60,7 +60,7 @@ namespace LobAccelerator.Library.Tests
                 }
             };
         }
-        
+
         [Fact]
         public async Task AddNewGroup()
         {
@@ -130,7 +130,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            
+
             HttpClient httpClient = await GetHttpClient();
             var teamsManager = new TeamsManager(httpClient);
 
@@ -196,10 +196,36 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.DeleteChannelAsync(groupId);
         }
 
+        [Fact]
+        public async Task AddFilesToChannel()
+        {
+            //Arrange
+            var teamNumber = new Random().Next();
+            var team = CreateWorkflow(teamNumber).Teams.First();
+            team.Channels.First().Files = new List<string>()
+            {
+                "TransferFiles/Welcome/Introduction/WelcomeCSE.pptx",
+                "TransferFiles/Welcome/Docs",
+                "Hotel.xlsx"
+            };
+            HttpClient httpClient = await GetHttpClient();
+            var teamsManager = new TeamsManager(httpClient);
+
+            //Act
+            var result = await teamsManager.CreateResourceAsync(team);
+
+            //Assert
+            Assert.False(result.HasError());
+
+            //Teardown
+            var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
+            await teamsManager.DeleteChannelAsync(groupId);
+        }
+
         private async Task<HttpClient> GetHttpClient()
         {
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(
-                "Group.ReadWrite.All", 
+                "Group.ReadWrite.All",
                 "User.ReadBasic.All");
             var httpClient = GraphClientFactory.CreateHttpClient(token.access_token);
             return httpClient;

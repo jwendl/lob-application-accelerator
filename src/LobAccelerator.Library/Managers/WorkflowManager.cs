@@ -10,20 +10,20 @@ namespace LobAccelerator.Library.Managers
         : IWorkflowManager
     {
         private readonly ITeamsManager teamsManager;
-        private readonly IOneDriveManager oneDriveManager;
 
         public WorkflowManager(string accessToken)
         {
             var httpClient = GraphClientFactory.CreateHttpClient(accessToken);
 
             teamsManager = new TeamsManager(httpClient);
-            oneDriveManager = new OneDriveManager(httpClient);
         }
 
         public async Task CreateResourceAsync(Workflow resource)
         {
             foreach (var team in resource.Teams)
+            {
                 await teamsManager.CreateResourceAsync(team);
+            }
         }
 
         Task<IResult> IResourceManager<Workflow>.CreateResourceAsync(Workflow resource)

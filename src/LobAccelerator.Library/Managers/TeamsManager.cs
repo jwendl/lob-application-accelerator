@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
@@ -22,11 +23,14 @@ namespace LobAccelerator.Library.Managers
         private readonly HttpClient httpClient;
         private readonly string _apiVersion;
         private readonly HttpResponseMessage responseDeletePerm;
+        private readonly IOneDriveManager oneDriveManager;
 
         public TeamsManager(HttpClient httpClient)
         {
             this.httpClient = httpClient;
             _apiVersion = ConstantsExtension.TeamsApiVersion;
+
+            oneDriveManager = new OneDriveManager(httpClient);
         }
 
         public async Task<IResult> CreateResourceAsync(TeamResource resource)
@@ -35,9 +39,45 @@ namespace LobAccelerator.Library.Managers
             Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
             IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
             IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
+            IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
 
-            return Result.Combine(group, team, channels, members);
+            return Result.Combine(group, team, channels, members, files);
         }
+
+        private async Task<IResult> CopyFilesToChannels(IEnumerable<ChannelResource> channels, string teamId)
+        {
+            await Task.Delay(16000);
+            // TODO: Remove this call.
+            // BUG: Creating Teams through Graph is taking too long to propagate the files directory properties.
+
+            var results = new List<Result<NoneResult>>();
+
+            foreach (var channel in channels)
+            {
+                foreach (var resource in channel.Files)
+                {
+                    var result = new Result<NoneResult>();
+                    try
+                    {
+                        if (IsFile(resource))
+                            await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, resource);
+                        else
+                            await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, resource);
+                    }
+                    catch (Exception ex)
+                    {
+                        result.HasError = true;
+                        result.Error = ex.Message;
+                    }
+                    results.Add(result);
+                }
+            }
+
+            return Result.Combine(results);
+        }
+
+        private bool IsFile(string input)
+            => new System.Text.RegularExpressions.Regex(@"\.[a-zA-Z0-9]*$").IsMatch(input);
 
         /// <summary>
         /// Creates a new group where teams will be assigned to.
