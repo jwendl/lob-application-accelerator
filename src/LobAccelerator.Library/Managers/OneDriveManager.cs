@@ -16,7 +16,7 @@ namespace LobAccelerator.Library.Managers
             this.httpClient = httpClient;
         }
 
-        public async Task CopyFileFromOneDriveToTeams(string teamId, string originOnedrivePath)
+        public async Task CopyFileFromOneDriveToTeams(string teamId, string teamChannel, string originOnedrivePath)
         {
             string copyUrlReference = string.Empty;
 
@@ -34,19 +34,19 @@ namespace LobAccelerator.Library.Managers
                 copyUrlReference = $"https://graph.microsoft.com/v1.0/me/drive/root/children/{originOnedrivePath}/copy";
             }
 
-            await CopyObjectFromOneDriveToTeams(teamId, copyUrlReference);
+            await CopyObjectFromOneDriveToTeams(copyUrlReference, teamId, teamChannel);
         }
 
-        public async Task CopyFolderFromOneDriveToTeams(string teamId, string originOnedriveFolder)
+        public async Task CopyFolderFromOneDriveToTeams(string teamId, string teamChannel, string originOnedriveFolder)
         {
             string copyUrlReference = $"https://graph.microsoft.com/v1.0/me/drive/root:/{originOnedriveFolder}:/copy";
 
-            await CopyObjectFromOneDriveToTeams(teamId, copyUrlReference);
+            await CopyObjectFromOneDriveToTeams(copyUrlReference, teamId, teamChannel);
         }
 
-        private async Task CopyObjectFromOneDriveToTeams(string originTeamId, string copyUrlReference)
+        private async Task CopyObjectFromOneDriveToTeams(string copyUrlReference, string originTeamId, string channelName = "General")
         {
-            (string originDriveId, string originFolderId) = await GetDriveandPathId(originTeamId);
+            (string originDriveId, string originFolderId) = await GetDriveandPathId(originTeamId, channelName);
 
             var requestBody = new
             {
@@ -64,9 +64,9 @@ namespace LobAccelerator.Library.Managers
             response.EnsureSuccessStatusCode();
         }
 
-        private async Task<(string, string)> GetDriveandPathId(string teamId)
+        private async Task<(string, string)> GetDriveandPathId(string teamId, string channelName)
         {
-            var url = $"https://graph.microsoft.com/beta/groups/{teamId}/drive/root/children/General";
+            var url = $"https://graph.microsoft.com/beta/groups/{teamId}/drive/root/children/{channelName}";
 
             var response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
