@@ -22,7 +22,6 @@ This is an application to generate O365 resources based on a simplified JSON pay
       "members": [
         "jwendl@jwazuread.onmicrosoft.com",
         "testuser001@jwazuread.onmicrosoft.com",
-        //"tedistef@jwazuread.onmicrosoft.com",
         "altagin@jwazuread.onmicrosoft.com"
       ],
       "channels": [
