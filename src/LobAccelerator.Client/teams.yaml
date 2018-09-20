@@ -1,23 +1,23 @@
 ---
-name: My MS Teams Group
-description: My MS Teams Group Description
-members:
+Name: My MS Teams Group
+Description: My MS Teams Group Description
+Members:
 - juanr@microsoft.com
 - juswen@microsoft.com
 - tedistef@microsoft.com
 - altagin@microsoft.com
-channels:
-- name: my channel one
-  description: my channel one description
-  files:
+Channels:
+- Name: my channel one
+  Description: my channel one description
+  Files:
   - "/team-files/"
-  members:
+  Members:
   - juanr@microsoft.com
   - juswen@microsoft.com
-- name: my channel two
-  description: my channel two description
-  filesAzstorageFolder: "/team-files-alt/"
-  members:
+- Name: my channel two
+  Description: my channel two description
+  FilesAzstorageFolder: "/team-files-alt/"
+  Members:
   - tedistef@microsoft.com
   - juswen@microsoft.com
   - andrg@microsoft.com

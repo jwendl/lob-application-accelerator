@@ -14,7 +14,9 @@ namespace LobAccelerator.Client
             try
             {
                 Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed(options => RunOptions(options));
+                    .WithParsed(async options => {
+                        await RunOptionAsync(options);
+                    });
             }
             catch (Exception ex)
             {
@@ -33,19 +35,26 @@ namespace LobAccelerator.Client
 
         private static async Task RunOptionAsync(Options options)
         {
-            ConsoleExtensions.DisplayInfoMessage("Sending request...");
-
-            Result<LobManager> managerResult = LobManager.Create(options);
-            Result<None> provisionResult = await managerResult.Value.ProvisionResourcesAsync();
-
-            var result = Result.Combine(managerResult, provisionResult);
-
-            if (result.HasError())
+            try
             {
-                throw new InvalidOperationException(managerResult.Error);
-            }
+                ConsoleExtensions.DisplayInfoMessage("Sending request...");
 
-            ConsoleExtensions.DisplaySuccessMessage("Done!");
+                Result<LobManager> managerResult = LobManager.Create(options);
+                Result<None> provisionResult = await managerResult.Value.ProvisionResourcesAsync();
+
+                var result = Result.Combine(managerResult, provisionResult);
+
+                if (result.HasError())
+                {
+                    throw new InvalidOperationException(managerResult.Error);
+                }
+
+                ConsoleExtensions.DisplaySuccessMessage("Done!");
+            }
+            catch (Exception ex)
+            {
+                var t = ex.Message;
+            }
         }
     }
 }
