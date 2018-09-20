@@ -36,7 +36,7 @@ namespace LobAccelerator.App.Functions
             ILogger log)
         {
             var accessToken = req.Headers.Authorization?.Parameter;
-            ServiceLocator.BuildServiceProvider(accessToken);
+            ServiceLocator.BuildServiceProvider(log, accessToken);
 
             (bool valid,
             Workflow workflow,
