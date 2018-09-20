@@ -1,26 +1,24 @@
-apiVersion: beta
-kind: Teams
-metadata:
-  name: My MS Teams Group
-  description: My MS Teams Group Description
-spec:
+---
+name: My MS Teams Group
+description: My MS Teams Group Description
+members:
+- juanr@microsoft.com
+- juswen@microsoft.com
+- tedistef@microsoft.com
+- altagin@microsoft.com
+channels:
+- name: my channel one
+  description: my channel one description
+  files:
+  - "/team-files/"
   members:
   - juanr@microsoft.com
   - juswen@microsoft.com
+- name: my channel two
+  description: my channel two description
+  filesAzstorageFolder: "/team-files-alt/"
+  members:
   - tedistef@microsoft.com
+  - juswen@microsoft.com
+  - andrg@microsoft.com
   - altagin@microsoft.com
-  channels:
-  - name: my channel one
-    description: my channel one description
-    filesAzstorageFolder: "/team-files/"
-    members:
-    - juanr@microsoft.com
-    - juswen@microsoft.com
-  - name: my channel two
-    description: my channel two description
-    filesAzstorageFolder: "/team-files-alt/"
-    members:
-    - tedistef@microsoft.com
-    - juswen@microsoft.com
-    - andrg@microsoft.com
-    - altagin@microsoft.com

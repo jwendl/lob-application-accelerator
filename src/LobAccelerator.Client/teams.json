@@ -11,7 +11,9 @@
     {
       "Name": "my channel one",
       "Description": "my channel one description",
-      "FilesAzstorageFolder": "/team-files/",
+      "Files": [
+        "/team-files/"
+      ],
       "Members": [
         "juanr@microsoft.com",
         "juswen@microsoft.com"

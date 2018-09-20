@@ -1,5 +1,8 @@
 ﻿using LobAccelerator.Client.Extensions;
+using LobAccelerator.Client.Models.Common;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -9,13 +12,39 @@ namespace LobAccelerator.Client.Models
 {
     public class LobManager
     {
-        private readonly Configuration _config;
-        private readonly IEnumerable<string> _files;
+        public Configuration Configuration { get; }
+        public IEnumerable<string> Files { get; }
 
-        public LobManager(Options options)
+        private LobManager(Options options)
         {
-            _config = GetConfiguration(options.ConfigurationFile);
-            _files = options.DefinitionsFiles;
+            Configuration = GetConfiguration(options.ConfigurationFile);
+            Files = options.DefinitionsFiles;
+        }
+
+        public static Result<LobManager> Create(Options options)
+        {
+            if (!options.DefinitionsFiles.All(f => File.Exists(f)))
+            {
+                return new Result<LobManager>
+                {
+                    HasError = true,
+                    Error = "The definition file was not found."
+                };
+            }
+                
+            if (!File.Exists(options.ConfigurationFile))
+            {
+                return new Result<LobManager>
+                {
+                    HasError = true,
+                    Error = "The configuration file was not found."
+                };
+            }
+
+            return new Result<LobManager>
+            {
+                Value = new LobManager(options)
+            };
         }
 
         private Configuration GetConfiguration(string configFile)
@@ -33,24 +62,35 @@ namespace LobAccelerator.Client.Models
             };
         }
 
-        public async Task ProvisionResourcesAsync()
+        public async Task<Result<None>> ProvisionResourcesAsync()
         {
-            var accessToken = await ConsoleExtensions
-                .GetTokenByCode(_config.AzureAd);
-            
-            using (var client = new HttpClient())
+            var result = new Result<None>();
+            var accessToken = await ConsoleExtensions.GetTokenByCode(Configuration.AzureAd);
+
+            try
             {
-                client.DefaultRequestHeaders.Add("X-Authorization", $"bearer {accessToken}");
-                _files.ToList().ForEach(async f => await RequestProvisioning(f, client));
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("X-Authorization", $"bearer {accessToken}");
+                    Files.ToList().ForEach(async f => await RequestProvisioning(f, client));
+                }
             }
+            catch (Exception ex)
+            {
+                result.HasError = true;
+                result.Error = ex.Message;
+                result.DetailedError = ex.InnerException.Message;
+            }
+
+            return result;
         }
 
         private async Task RequestProvisioning(string file, HttpClient client)
         {
             var content = await file.GetFileContentAsync();
             var body = new StringContent(content, Encoding.UTF8, "application/json");
-            
-            var response = await client.PostAsync(_config.Endpoint, body);
+
+            var response = await client.PostAsync(Configuration.Endpoint, body);
             response.EnsureSuccessStatusCode();
         }
     }
