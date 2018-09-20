@@ -3,8 +3,9 @@ using LobAccelerator.App.Models;
 using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models;
 using Microsoft.Azure.WebJobs;
+using System.Linq;
 using Microsoft.Extensions.Logging;
-using static LobAccelerator.App.Util.GlobalSettings;
+using static LobAccelerator.App.Extensions.ConstantsExtension;
 
 namespace LobAccelerator.App.Functions
 {
@@ -18,11 +19,12 @@ namespace LobAccelerator.App.Functions
             Parameter refreshToken,
             ILogger log)
         {
-            log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
-
             IWorkflowManager workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
             workflowManager.CreateResourceAsync(workflow);
+            var tmpTeam = workflow.Teams.FirstOrDefault();
+            log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");
+            log.LogInformation($"{tmpTeam.DisplayName} team created, {tmpTeam.Channels.Count()} channels, {tmpTeam.Members.Count()} members and configurations Done!");
         }
     }
 }
