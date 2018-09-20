@@ -69,11 +69,7 @@ namespace LobAccelerator.Client.Models
 
             try
             {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("X-Authorization", $"bearer {accessToken}");
-                    Files.ToList().ForEach(async f => await RequestProvisioning(f, client));
-                }
+                Files.ToList().ForEach(async f => await RequestProvisioning(f, accessToken));
             }
             catch (Exception ex)
             {
@@ -85,13 +81,17 @@ namespace LobAccelerator.Client.Models
             return result;
         }
 
-        private async Task RequestProvisioning(string file, HttpClient client)
+        private async Task RequestProvisioning(string file, string accessToken)
         {
-            var content = await file.GetFileContentAsync();
-            var body = new StringContent(content, Encoding.UTF8, "application/json");
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-Authorization", $"bearer {accessToken}");
+                var content = await file.GetFileContentAsync();
+                var body = new StringContent(content, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(Configuration.Endpoint, body);
-            response.EnsureSuccessStatusCode();
+                var response = await client.PostAsync(Configuration.Endpoint, body);
+                response.EnsureSuccessStatusCode();
+            }
         }
     }
 }
