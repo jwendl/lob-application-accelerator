@@ -1,9 +1,6 @@
 ﻿using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using Microsoft.Identity.Client;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -45,9 +42,9 @@ namespace LobAccelerator.Library.Tests
             var configuration = new ConfigurationManager();
             var tokenRetriever = new TokenRetriever(configuration);
             var scopes = new string[] { "Group.ReadWrite.All",
-                $"api://{configuration["AzureAd:ClientId"]}/access_as_user" };
-            var expectedAudience = configuration["AzureAd:ExpectedAudience"];
-            var expectedIssuer = configuration["AzureAd:ExpectedIssuer"];
+                $"api://{configuration["ClientId"]}/access_as_user" };
+            var expectedAudience = configuration["ExpectedAudience"];
+            var expectedIssuer = configuration["ExpectedIssuer"];
 
             //Act
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);

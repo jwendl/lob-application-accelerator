@@ -21,6 +21,7 @@ namespace LobAccelerator.Library.Managers
         : ITeamsManager
     {
         private readonly HttpClient httpClient;
+        private readonly Uri _baseUri;
         private readonly string _apiVersion;
         private readonly HttpResponseMessage responseDeletePerm;
         private readonly IOneDriveManager oneDriveManager;
@@ -28,6 +29,15 @@ namespace LobAccelerator.Library.Managers
         public TeamsManager(HttpClient httpClient, IOneDriveManager oneDriveManager)
         {
             this.httpClient = httpClient;
+
+            var desiredScopes = new string[]
+            {
+                "Group.ReadWrite.All",
+                "User.ReadBasic.All"
+            };
+            this.httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
+
+            _baseUri = new Uri("https://graph.microsoft.com/");
             _apiVersion = ConstantsExtension.TeamsApiVersion;
 
             this.oneDriveManager = oneDriveManager;
@@ -106,7 +116,7 @@ namespace LobAccelerator.Library.Managers
         public async Task<Result<Group>> CreateGroupAsync(TeamResource resource)
         {
             var result = new Result<Group>();
-            var groupUri = $"{_apiVersion}/groups";
+            var groupUri = new Uri(_baseUri, $"{_apiVersion}/groups");
 
             var requestContent = new GroupBody
             {
@@ -118,7 +128,7 @@ namespace LobAccelerator.Library.Managers
                 SecurityEnabled = false
             };
 
-            var response = await httpClient.PostContentAsync(groupUri, requestContent);
+            var response = await httpClient.PostContentAsync(groupUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -141,7 +151,7 @@ namespace LobAccelerator.Library.Managers
         public async Task<Result<Team>> CreateTeamAsync(string groupId, TeamResource resource)
         {
             var result = new Result<Team>();
-            var uri = $"{_apiVersion}/groups/{groupId}/team";
+            var uri = new Uri(_baseUri, $"{_apiVersion}/groups/{groupId}/team");
 
             var requestContent = new TeamBody
             {
@@ -150,7 +160,7 @@ namespace LobAccelerator.Library.Managers
                 FunSettings = resource.FunSettings
             };
 
-            var response = await httpClient.PutContentAsync(uri, requestContent);
+            var response = await httpClient.PutContentAsync(uri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -175,12 +185,12 @@ namespace LobAccelerator.Library.Managers
         public async Task<IResult> CreateChannelsAsync(string teamId, IEnumerable<ChannelResource> channels)
         {
             var results = new List<Result<Channel>>();
-            var uri = $"{_apiVersion}/teams/{teamId}/channels";
+            var uri = new Uri(_baseUri, $"{_apiVersion}/teams/{teamId}/channels");
 
             foreach (var channel in channels)
             {
                 var result = new Result<Channel>();
-                var response = await httpClient.PostContentAsync(uri, channel);
+                var response = await httpClient.PostContentAsync(uri.AbsoluteUri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -239,9 +249,9 @@ namespace LobAccelerator.Library.Managers
         public async Task<Result<User>> GetUserAsync(string memberEmail)
         {
             var result = new Result<User>();
-            var uri = $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id";
+            var uri = new Uri(_baseUri, $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id");
 
-            var response = await httpClient.GetContentAsync(uri);
+            var response = await httpClient.GetContentAsync(uri.AbsoluteUri);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -259,7 +269,7 @@ namespace LobAccelerator.Library.Managers
 
         public async Task<string> SearchTeamAsync(string displayName)
         {
-            var listTeams = $"beta/groups?$filter=displayName eq '{displayName}'&$select=id";
+            var listTeams = new Uri(_baseUri, $"beta/groups?$filter=displayName eq '{displayName}'&$select=id");
 
             var response = await httpClient.GetAsync(listTeams);
             response.EnsureSuccessStatusCode();
@@ -273,8 +283,8 @@ namespace LobAccelerator.Library.Managers
         public async Task<Result<NoneResult>> DeleteChannelAsync(string groupId)
         {
             var result = new Result<NoneResult>();
-            var deleteUri = $"{_apiVersion}/groups/{groupId}";
-            var deletePermanentUri = $"{_apiVersion}/directory/deleteditems/microsoft.graph.group/{groupId}";
+            var deleteUri = new Uri(_baseUri, $"{_apiVersion}/groups/{groupId}");
+            var deletePermanentUri = new Uri(_baseUri, $"{_apiVersion}/directory/deleteditems/microsoft.graph.group/{groupId}");
 
             var responseDelete = await httpClient.DeleteAsync(deleteUri);
             responseDelete.EnsureSuccessStatusCode();

@@ -1,10 +1,8 @@
 ﻿using LobAccelerator.Library.Utils;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
@@ -35,9 +33,9 @@ namespace LobAccelerator.Library.Managers
                 var appTokenCache = new TokenCache();
 
                 var msalApp = new ConfidentialClientApplication(
-                    configuration["AzureAd:ClientId"],
-                    configuration["AzureAd:RedirectUri"],
-                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                    configuration["ClientId"],
+                    configuration["RedirectUri"],
+                    new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
 
@@ -62,9 +60,9 @@ namespace LobAccelerator.Library.Managers
                 var appTokenCache = new TokenCache();
 
                 var msalApp = new ConfidentialClientApplication(
-                    configuration["AzureAd:ClientId"],
-                    configuration["AzureAd:RedirectUri"],
-                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                    configuration["ClientId"],
+                    configuration["RedirectUri"],
+                    new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
 
@@ -80,15 +78,16 @@ namespace LobAccelerator.Library.Managers
 
         public async Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes)
         {
-            try { 
+            try
+            {
                 var clientTokenCache = new TokenCache();
                 var userTokenCache = tokenCacheHelper.FetchUserCache();
                 var appTokenCache = new TokenCache();
 
                 var msalApp = new ConfidentialClientApplication(
-                    configuration["AzureAd:ClientId"],
-                    configuration["AzureAd:RedirectUri"],
-                    new ClientCredential(configuration["AzureAd:ClientSecret"]),
+                    configuration["ClientId"],
+                    configuration["RedirectUri"],
+                    new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
 
@@ -96,7 +95,7 @@ namespace LobAccelerator.Library.Managers
                 var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
                 var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                     user,
-                    $"https://login.microsoftonline.com/{configuration["AzureAd:TenantId"]}");
+                    $"https://login.microsoftonline.com/{configuration["TenantId"]}");
                 //var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                 //    user);
 

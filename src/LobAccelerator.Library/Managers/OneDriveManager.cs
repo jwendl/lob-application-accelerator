@@ -14,6 +14,13 @@ namespace LobAccelerator.Library.Managers
         public OneDriveManager(HttpClient httpClient)
         {
             this.httpClient = httpClient;
+
+            var desiredScopes = new string[]
+            {
+                "Group.ReadWrite.All",
+                "User.ReadBasic.All"
+            };
+            this.httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
         }
 
         public async Task CopyFileFromOneDriveToTeams(string teamId, string teamChannel, string originOnedrivePath)

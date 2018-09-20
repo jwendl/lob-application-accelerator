@@ -23,8 +23,12 @@ namespace LobAccelerator.App.Locators
             {
                 var tokenManager = sp.GetRequiredService<ITokenManager>();
                 var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, accessToken);
-                var httpClient = new HttpClient(tokenManagerHttpMessageHandler);
-                httpClient.BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["AzureAD:GraphBaseUri"]);
+
+                var httpClient = new HttpClient(tokenManagerHttpMessageHandler)
+                {
+                    BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["GraphBaseUri"])
+                };
+
                 return httpClient;
             });
             serviceCollection.AddSingleton<ITeamsManager, TeamsManager>();

@@ -1,0 +1,32 @@
+{
+  "Name": "My MS Teams Group",
+  "Description": "My MS Teams Group Description",
+  "Members": [
+    "juanr@microsoft.com",
+    "juswen@microsoft.com",
+    "tedistef@microsoft.com",
+    "altagin@microsoft.com"
+  ],
+  "Channels": [
+    {
+      "Name": "my channel one",
+      "Description": "my channel one description",
+      "FilesAzstorageFolder": "/team-files/",
+      "Members": [
+        "juanr@microsoft.com",
+        "juswen@microsoft.com"
+      ]
+    },
+    {
+      "Name": "my channel two",
+      "Description": "my channel two description",
+      "FilesAzstorageFolder": "/team-files-alt/",
+      "Members": [
+        "tedistef@microsoft.com",
+        "juswen@microsoft.com",
+        "andrg@microsoft.com",
+        "altagin@microsoft.com"
+      ]
+    }
+  ]
+}
