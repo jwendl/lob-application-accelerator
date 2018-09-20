@@ -7,7 +7,6 @@
       "members": [
         "jwendl@jwazuread.onmicrosoft.com",
         "testuser001@jwazuread.onmicrosoft.com",
-        //"tedistef@jwazuread.onmicrosoft.com",
         "altagin@jwazuread.onmicrosoft.com"
       ],
       "channels": [
@@ -21,7 +20,9 @@
           "members": [
             "jwendl@jwazuread.onmicrosoft.com",
             "testuser001@jwazuread.onmicrosoft.com"
-          ]
+          ],
+          "sharepointList": "https://jwazuread.sharepoint.com/Shared%20Documents/Forms/AllItems.aspx?viewpath=%2FShared%20Documents%2FForms%2FAllItems.aspx",
+          "sharepointListName": "Test List"
         },
         {
           "displayName": "Finance",

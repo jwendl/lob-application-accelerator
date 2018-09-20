@@ -12,8 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+using static LobAccelerator.Library.Extensions.ConstantsExtension;
 
 namespace LobAccelerator.Library.Managers
 {
@@ -60,9 +60,13 @@ namespace LobAccelerator.Library.Managers
                     try
                     {
                         if (IsFile(resource))
+                        {
                             await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, resource);
+                        }
                         else
+                        {
                             await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, resource);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -166,6 +170,9 @@ namespace LobAccelerator.Library.Managers
                 if (response.IsSuccessStatusCode)
                 {
                     result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
+                    var tabresult = await AddTabToChannelBasedOnUrlAsync(
+                                                channel.SharepointListUrl, channel.SharepointListName,
+                                                teamId, result.Value.Id);
                 }
                 else
                 {
@@ -179,6 +186,48 @@ namespace LobAccelerator.Library.Managers
 
             return Result.Combine(results);
         }
+
+        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(string tabName, string serviceUrl,
+            string teamId, string channelId)
+        {
+            var addTabUrl = $"{GraphAlphaApiVersion}/teams/{teamId}/channels/{channelId}/tabs";
+            var results = new List<Result<NoneResult>>();
+            var quickObject = new
+            {
+                name = tabName,
+                teamsAppId = "com.microsoft.teamspace.tab.web",
+                configuration = new
+                {
+                    entityId = string.Empty,
+                    contentUrl = serviceUrl,
+                    removeUrl = string.Empty,
+                    websiteUrl = serviceUrl
+                }
+            };
+
+            var result = new Result<NoneResult>();
+            try
+            {
+                var response = await httpClient.PostContentAsync(addTabUrl, quickObject);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.HasError = true;
+                    result.Error = response.ReasonPhrase;
+                    result.DetailedError = responseString;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.HasError = true;
+                result.Error = ex.Message;
+                result.DetailedError = JsonConvert.SerializeObject(ex);
+            }
+
+            return result;
+        }
+
 
         public async Task<IResult> AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
         {
