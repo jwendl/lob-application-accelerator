@@ -69,7 +69,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var result = await teamsManager.CreateGroupAsync(team);
@@ -88,7 +88,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -108,7 +108,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            TeamsManager teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -123,21 +123,13 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.DeleteChannelAsync(groupId);
         }
 
-        private async Task<TeamsManager> CreateTeamsManager()
-        {
-            HttpClient httpClient = await GetHttpClient();
-            var teamsManager = new TeamsManager(httpClient, new OneDriveManager(httpClient));
-            return teamsManager;
-        }
-
         [Fact]
         public async Task AddPeopleToChannel()
         {
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -165,7 +157,7 @@ namespace LobAccelerator.Library.Tests
                             "user@othertenat.onmicrosoft.com"
                         };
 
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -186,7 +178,7 @@ namespace LobAccelerator.Library.Tests
             //Arrange
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var result = await teamsManager.CreateResourceAsync(team);
@@ -211,7 +203,7 @@ namespace LobAccelerator.Library.Tests
                 "TransferFiles/Welcome/Docs",
                 "Hotel.xlsx"
             };
-            var teamsManager = await CreateTeamsManager();
+            var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var result = await teamsManager.CreateResourceAsync(team);
@@ -224,19 +216,33 @@ namespace LobAccelerator.Library.Tests
             await teamsManager.DeleteChannelAsync(groupId);
         }
 
-        private async Task<HttpClient> GetHttpClient()
+        private async Task<TeamsManager> CreateTeamsManagerAsync()
         {
-            string[] scopes =
+            var httpClient = await GetHttpClientAsync();
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
+            return teamsManager;
+        }
+
+        private async Task<HttpClient> GetHttpClientAsync()
+        {
+            var scopes = new string[] {
+                $"api://{configurationManager["AzureAd:ClientId"]}/access_as_user"
+            };
+            var tokenManager = new TokenManager(configurationManager);
+            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
+            var uri = await tokenManager.GetAuthUriAsync(scopes);
+            var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
+            var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
+            var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, authResult.AccessToken);
+            var httpClient = new HttpClient(tokenManagerHttpMessageHandler);
+            httpClient.BaseAddress = new Uri(configurationManager["AzureAD:GraphBaseUri"]);
+            var desiredScopes = new string[]
             {
                 "Group.ReadWrite.All",
                 "User.ReadBasic.All"
             };
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
-            var tokenManager = new TokenManager(configurationManager);
-
-            var httpClient = Substitute.For<HttpClient>();
-            httpClient.DefaultRequestHeaders.Add("X-TMScopes", scopes);
-
+            httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
             return httpClient;
         }
     }

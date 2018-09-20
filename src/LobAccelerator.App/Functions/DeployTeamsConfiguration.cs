@@ -21,7 +21,7 @@ namespace LobAccelerator.App.Functions
         {
             ServiceLocator.BuildServiceProvider(accessToken.Value);
             var workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
-           
+
             workflowManager.CreateResourceAsync(workflow);
             var tmpTeam = workflow.Teams.FirstOrDefault();
             log.LogInformation($"C# Queue trigger DeployTeamsConfiguration processed: {workflow}");

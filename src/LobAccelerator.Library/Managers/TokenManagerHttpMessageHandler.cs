@@ -13,6 +13,7 @@ namespace LobAccelerator.Library.Managers
         {
             this.tokenManager = tokenManager;
             this.accessToken = accessToken;
+            InnerHandler = new HttpClientHandler();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
