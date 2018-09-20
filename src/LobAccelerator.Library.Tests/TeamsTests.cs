@@ -70,7 +70,8 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
             var httpClient = await GetHttpClientAsync();
-            var teamsManager = new TeamsManager(httpClient);
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
 
             //Act
             var result = await teamsManager.CreateGroupAsync(team);
@@ -90,7 +91,8 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
             var httpClient = await GetHttpClientAsync();
-            var teamsManager = new TeamsManager(httpClient);
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -111,7 +113,8 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
             var httpClient = await GetHttpClientAsync();
-            var teamsManager = new TeamsManager(httpClient);
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -134,7 +137,8 @@ namespace LobAccelerator.Library.Tests
             var team = CreateWorkflow(teamNumber).Teams.First();
 
             var httpClient = await GetHttpClientAsync();
-            var teamsManager = new TeamsManager(httpClient);
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
@@ -156,7 +160,8 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
             var httpClient = await GetHttpClientAsync();
-            var teamsManager = new TeamsManager(httpClient);
+            var oneDriveManager = new OneDriveManager(httpClient);
+            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
 
             //Act
             var result = await teamsManager.CreateResourceAsync(team);
