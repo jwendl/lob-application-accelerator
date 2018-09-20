@@ -1,16 +1,11 @@
 ﻿using CommandLine;
 using LobAccelerator.Client.Extensions;
 using LobAccelerator.Client.Models;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using YamlDotNet.Serialization;
 
 namespace LobAccelerator.Client
 {
@@ -42,24 +37,12 @@ namespace LobAccelerator.Client
         {
             ValidateInput(options);
 
-            var configuration = new ConfigurationManager(options.ConfigurationFile);
-
-            IEnumerable<string> files = options.DefinitionsFiles;
-            string resource = configuration["AzureAd:Resource"];
-            string clientId = configuration["AzureAd:ClientId"];
-            string url = configuration["LobEngine:Endpoint"];
-
-            ConsoleExtensions.DisplayInfoMessage("Input validated...");
-
-            var accessToken = await ConsoleExtensions.GetTokenByCode(resource, clientId);
-
-            ConsoleExtensions.DisplayInfoMessage("Token acquired...");
             ConsoleExtensions.DisplayInfoMessage("Sending request...");
 
-            var manager = new LobManager();
-            await manager.ProvisionResourcesAsync(url, accessToken, files);
+            var manager = new LobManager(options);
+            await manager.ProvisionResourcesAsync();
 
-            ConsoleExtensions.DisplaySuccessMessage("Finished!");
+            ConsoleExtensions.DisplaySuccessMessage("Done!");
         }
         
         private static void ValidateInput(Options options)
@@ -70,7 +53,5 @@ namespace LobAccelerator.Client
             if (!File.Exists(options.ConfigurationFile))
                 throw new FileNotFoundException("The configuration file was not found.");
         }
-        
-        
     }
 }
