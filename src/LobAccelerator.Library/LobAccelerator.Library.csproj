@@ -12,6 +12,9 @@
     <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="5.2.4" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.2.4" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.2.4" />
+    <PackageReference Include="Microsoft.Online.SharePoint.Client.Tenant.dll" Version="15.0.4615.1001" />
+    <PackageReference Include="Microsoft.SharePoint.Client" Version="14.0.4762.1000" />
+    <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.8029.1200" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.10" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.4" />
