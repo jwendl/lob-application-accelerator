@@ -72,11 +72,6 @@ namespace LobAccelerator.App.Functions
                         : new BadRequestObjectResult($"Invalid HttpRequest, reason: {responseString}");
         }
 
-        private static string ConvertAccessTokenToRefreshToken(Parameter acessToken)
-        {
-            return "NOT IMPLEMENTED YET";
-        }
-
         private static async Task<(bool, Workflow, List<string>)>
             ValidateBodyAndAuth(HttpRequestMessage req)
         {
