@@ -50,18 +50,18 @@ namespace LobAccelerator.Library.Utils
             lock (FileLock)
             {
                 var existTask = StorageHelper.BlobExistsAsync(
-                        configuration["TokenCacheHelper:StorageConnectionString"],
-                        configuration["TokenCacheHelper:TokenCacheContainerName"],
-                        configuration["TokenCacheHelper:TokenCacheBlobName"]);
+                        configuration["StorageConnectionString"],
+                        configuration["TokenCacheContainerName"],
+                        configuration["TokenCacheBlobName"]);
 
                 Task.WaitAll(existTask);
 
                 if (existTask.Result)
                 {
                     var fileTask = StorageHelper.DownloadBlobAsync(
-                        configuration["TokenCacheHelper:StorageConnectionString"],
-                        configuration["TokenCacheHelper:TokenCacheContainerName"],
-                        configuration["TokenCacheHelper:TokenCacheBlobName"]);
+                        configuration["StorageConnectionString"],
+                        configuration["TokenCacheContainerName"],
+                        configuration["TokenCacheBlobName"]);
 
                     Task.WaitAll(fileTask);
 
@@ -82,9 +82,9 @@ namespace LobAccelerator.Library.Utils
                 lock (FileLock)
                 {
                     var fileTask = StorageHelper.UploadBlobAsync(
-                            configuration["TokenCacheHelper:StorageConnectionString"],
-                            configuration["TokenCacheHelper:TokenCacheContainerName"],
-                            configuration["TokenCacheHelper:TokenCacheBlobName"],
+                            configuration["StorageConnectionString"],
+                            configuration["TokenCacheContainerName"],
+                            configuration["TokenCacheBlobName"],
                             ProtectedData.Protect(args.TokenCache.Serialize(), null, DataProtectionScope.CurrentUser));
 
                     Task.WaitAll(fileTask);

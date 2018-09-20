@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
@@ -28,6 +29,13 @@ namespace LobAccelerator.Library.Managers
         public TeamsManager(HttpClient httpClient, IOneDriveManager oneDriveManager)
         {
             this.httpClient = httpClient;
+
+            var desiredScopes = new string[]
+            {
+                "Group.ReadWrite.All",
+                "User.ReadBasic.All"
+            };
+            this.httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
 
             _baseUri = new Uri("https://graph.microsoft.com/");
             _apiVersion = ConstantsExtension.TeamsApiVersion;

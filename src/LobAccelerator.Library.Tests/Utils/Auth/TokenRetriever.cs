@@ -28,13 +28,13 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
-            tenantId = configuration["AzureAd:TenantId"];
-            username = configuration["AzureAd:Username"];
-            password = configuration["AzureAd:Password"];
-            clientId = configuration["AzureAd:ClientId"];
-            clientSecret = configuration["AzureAd:ClientSecret"];
-            redirectUri = configuration["AzureAd:RedirectUri"];
-            resource = configuration["AzureAd:Resource"];
+            tenantId = configuration["TenantId"];
+            username = configuration["Username"];
+            password = configuration["Password"];
+            clientId = configuration["ClientId"];
+            clientSecret = configuration["ClientSecret"];
+            redirectUri = configuration["RedirectUri"];
+            resource = configuration["Resource"];
 
             TokenCaching = new Dictionary<string, AzureAdToken>();
         }
