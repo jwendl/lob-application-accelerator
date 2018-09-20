@@ -20,7 +20,7 @@ namespace LobAccelerator.App.Functions
             Parameter accessToken,
             ILogger log)
         {
-            ServiceLocator.BuildServiceProvider(accessToken.Value);
+            ServiceLocator.BuildServiceProvider(log, accessToken.Value);
             var workflowManager = ServiceLocator.GetRequiredService<IWorkflowManager>();
 
             await workflowManager.CreateResourceAsync(workflow);

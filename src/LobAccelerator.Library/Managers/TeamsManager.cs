@@ -6,6 +6,7 @@ using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
 using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -23,12 +24,13 @@ namespace LobAccelerator.Library.Managers
         private readonly HttpClient httpClient;
         private readonly Uri _baseUri;
         private readonly string _apiVersion;
-        private readonly HttpResponseMessage responseDeletePerm;
+        private readonly ILogger logger;
         private readonly IOneDriveManager oneDriveManager;
 
-        public TeamsManager(HttpClient httpClient, IOneDriveManager oneDriveManager)
+        public TeamsManager(HttpClient httpClient, ILogger logger, IOneDriveManager oneDriveManager)
         {
             this.httpClient = httpClient;
+            this.logger = logger;
 
             var desiredScopes = new string[]
             {
@@ -45,13 +47,32 @@ namespace LobAccelerator.Library.Managers
 
         public async Task<IResult> CreateResourceAsync(TeamResource resource)
         {
+            logger.LogInformation($"Starting to create the group {resource.DisplayName}");
             Result<Group> group = await CreateGroupAsync(resource);
-            Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
-            IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
-            IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
-            IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
+            logger.LogInformation($"Finished creating the group {resource.DisplayName}");
 
-            return Result.Combine(group, team, channels, members, files);
+            logger.LogInformation($"Starting to create the team {resource.DisplayName}");
+            Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
+            logger.LogInformation($"Finished creating the group {resource.DisplayName}");
+
+            logger.LogInformation($"Starting to create {resource.Channels.Count()} channels");
+            IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
+            logger.LogInformation($"Finished creating {resource.Channels.Count()} channels");
+
+            logger.LogInformation($"Starting to create {resource.Members.Count()} members");
+            IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
+            logger.LogInformation($"Finished creating {resource.Members.Count()} members");
+
+            logger.LogInformation($"Starting to copy files");
+            IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
+            logger.LogInformation($"Finished copying files");
+
+            var results = Result.Combine(group, team, channels, members, files);
+            if (results.HasError())
+            {
+                logger.LogError($"There was an error with the TeamsManager: {results.GetError()}");
+            }
+            return results;
         }
 
         private async Task<IResult> CopyFilesToChannels(IEnumerable<ChannelResource> channels, string teamId)
