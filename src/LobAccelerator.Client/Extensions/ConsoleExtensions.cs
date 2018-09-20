@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Clients.ActiveDirectory;
+﻿using LobAccelerator.Client.Models;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Threading.Tasks;
 
@@ -25,9 +26,11 @@ namespace LobAccelerator.Client.Extensions
             Console.WriteLine(message);
         }
 
-        public static async Task<string> GetTokenByCode(string resource, string clientId)
+        public static async Task<string> GetTokenByCode(AzureAd azureAd)
         {
             var ctx = new AuthenticationContext("https://login.microsoftonline.com/common");
+            var resource = azureAd.Resource;
+            var clientId = azureAd.ClientId;
             var deviceCodeResult = await ctx.AcquireDeviceCodeAsync(resource, clientId);
 
             Console.ResetColor();
