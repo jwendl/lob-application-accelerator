@@ -14,37 +14,68 @@ This is an application to generate O365 resources based on a simplified JSON pay
 
 ``` json
 {
-  "Name": "My MS Teams Group",
-  "Description": "My MS Teams Group Description",
-  "Members": [
-    "juanr@microsoft.com",
-    "juswen@microsoft.com",
-    "tedistef@microsoft.com",
-    "altagin@microsoft.com"
-  ],
-  "Channels": [
+  "teams": [
     {
-      "Name": "my channel one",
-      "Description": "my channel one description",
-      "FilesAzstorageFolder": "/team-files/",
-      "Members": [
-        "juanr@microsoft.com",
-        "juswen@microsoft.com"
+      "displayName": "My MS Teams Group",
+      "description": "My MS Teams Group Description",
+      "mailNickName": "my1teaamsgroup",
+      "members": [
+        "jwendl@jwazuread.onmicrosoft.com",
+        "testuser001@jwazuread.onmicrosoft.com",
+        "altagin@jwazuread.onmicrosoft.com"
+      ],
+      "channels": [
+        {
+          "displayName": "my channel one",
+          "description": "my channel one description",
+          "azFilesFolderPath": "/team-files/",
+          "members": [
+            "jwendl@jwazuread.onmicrosoft.com",
+            "testuser001@jwazuread.onmicrosoft.com"
+          ]
+        },
+        {
+          "displayName": "my channel two",
+          "description": "my channel two description",
+          "azFilesFolderPath": "/team-files-alt/",
+          "members": [
+            "jwendl@jwazuread.onmicrosoft.com",
+            "testuser001@jwazuread.onmicrosoft.com"
+          ]
+        }
       ]
     },
     {
-      "Name": "my channel two",
-      "Description": "my channel two description",
-      "FilesAzstorageFolder": "/team-files-alt/",
-      "Members": [
-        "tedistef@microsoft.com",
-        "juswen@microsoft.com",
-        "andrg@microsoft.com",
-        "altagin@microsoft.com"
+      "displayName": "My Second Teams Group",
+      "description": "My Second Teams Group Description",
+      "mailNickName": "my1teaamsgroup",
+      "members": [
+        "testuser001@jwazuread.onmicrosoft.com",
+        "jwendl@jwazuread.onmicrosoft.com"
+
+      ],
+      "channels": [
+        {
+          "displayName": "Second team my channel one",
+          "description": "Second team my channel one description",
+          "azFilesFolderPath": "/team-files-2/",
+          "members": [
+            "testuser001@jwazuread.onmicrosoft.com"
+          ]
+        },
+        {
+          "displayName": "my channel two",
+          "description": "my channel two description",
+          "azFilesFolderPath": "/team-files-alt/",
+          "members": [
+            "jwendl@jwazuread.onmicrosoft.com"
+          ]
+        }
       ]
     }
   ]
 }
+
 ```
 
 ## Contributions

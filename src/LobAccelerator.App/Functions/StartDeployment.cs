@@ -1,5 +1,6 @@
 #define SINGLEPASS
 #undef SINGLEPASS
+using LobAccelerator.App.Locators;
 using LobAccelerator.App.Models;
 using LobAccelerator.Library.Extensions;
 using LobAccelerator.Library.Models;
@@ -34,6 +35,9 @@ namespace LobAccelerator.App.Functions
             CloudQueue  queue,
             ILogger log)
         {
+            var accessToken = req.Headers.Authorization?.Parameter;
+            ServiceLocator.BuildServiceProvider(accessToken);
+
             (bool valid,
             Workflow workflow,
             List<string> validationStrings) = await ValidateBodyAndAuth(req);
@@ -45,12 +49,11 @@ namespace LobAccelerator.App.Functions
             log.LogInformation($"C# HTTP trigger function processing a {(!valid ? "in" : string.Empty)}valid request.");
             if (valid)
             {
-                var refreshToken = ConvertAccessTokenToRefreshToken(parameter);
-                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, refreshToken);
+                parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, accessToken);
 
                 foreach (var team in workflow.Teams)
                 {
-                    var newWorkflow = new Workflow
+                    var newWorkflow = new Workflow()
                     {
                         Teams = new List<TeamResource> { team }
                     };
@@ -120,7 +123,7 @@ namespace LobAccelerator.App.Functions
             }
             else
             {
-                parameter = new Parameter
+                parameter = new Parameter()
                 {
                     PartitionKey = PARAM_PARTITION_KEY,
                     RowKey = PARAM_TOKEN_ROW,
