@@ -100,7 +100,7 @@ namespace LobAccelerator.Library.Managers
                 SecurityEnabled = false
             };
 
-            var response = await httpClient.PostContentAsync(groupUri, requestContent);
+            var response = await httpClient.PostContentAsync(groupUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -132,7 +132,7 @@ namespace LobAccelerator.Library.Managers
                 FunSettings = resource.FunSettings
             };
 
-            var response = await httpClient.PutContentAsync(uri, requestContent);
+            var response = await httpClient.PutContentAsync(uri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
@@ -162,7 +162,7 @@ namespace LobAccelerator.Library.Managers
             foreach (var channel in channels)
             {
                 var result = new Result<Channel>();
-                var response = await httpClient.PostContentAsync(uri, channel);
+                var response = await httpClient.PostContentAsync(uri.AbsoluteUri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -223,7 +223,7 @@ namespace LobAccelerator.Library.Managers
             var result = new Result<User>();
             var uri = new Uri(_baseUri, $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id");
 
-            var response = await httpClient.GetContentAsync(uri);
+            var response = await httpClient.GetContentAsync(uri.AbsoluteUri);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)
