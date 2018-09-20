@@ -6,4 +6,4 @@ In step 1, when registering your app, add the following delegated permissions in
 - `Group.ReadWrite.All` (for Teams)
 - `Sites.ReadWrite.All` (for SharePoint)
 
-In steps 2-3, include these scopes in the scope parameters. For example: `scope=offline_access group.readwrite.all sites.readwrite.all`
+In steps 2-3, the scope parameter must be $"api://{configuration["AzureAd:ClientId"]}/access_as_user"
