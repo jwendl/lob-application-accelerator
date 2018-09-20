@@ -47,8 +47,7 @@ namespace LobAccelerator.Library.Tests
 
             //Act
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
-            var header = new AuthenticationHeaderValue("Bearer", token.access_token);
-            //var validation = await AuthHelper.ValidateTokenAsync(header, expectedIssuer, expectedAudience, scopes);
+            //var validation = await AuthHelper.ValidateTokenAsync(token.access_token, expectedIssuer, expectedAudience, scopes);
 
             //Assert
             // We will only validate the On-behalf-of tokens...

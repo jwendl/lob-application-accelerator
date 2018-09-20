@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LobAccelerator.Library.Managers;
+using System;
 using System.Net.Http;
 
 namespace LobAccelerator.Library.Factories
@@ -7,14 +8,17 @@ namespace LobAccelerator.Library.Factories
     {
         private const string BASE_URL = "https://graph.microsoft.com/";
 
-        public static HttpClient CreateHttpClient(string accessToken)
+        public static HttpClient CreateHttpClient(ITokenManager tokenManager, string accessToken)
         {
-            var client = new HttpClient
-            {
-                BaseAddress = new Uri(BASE_URL)
-            };
+            var tokenManagerHttpMessageHandler =
+                new TokenManagerHttpMessageHandler(tokenManager, accessToken);
 
-            client.DefaultRequestHeaders.Add("Authorization", $"bearer {accessToken}");
+            var client = new HttpClient(tokenManagerHttpMessageHandler)
+            {
+                BaseAddress = new Uri(BASE_URL),
+            };
+            
+
 
             return client;
         }
