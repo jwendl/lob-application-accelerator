@@ -3,6 +3,7 @@ using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Managers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
 
@@ -12,11 +13,12 @@ namespace LobAccelerator.App.Locators
     {
         private static IServiceProvider serviceProvider;
 
-        public static void BuildServiceProvider(string accessToken)
+        public static void BuildServiceProvider(ILogger logger, string accessToken)
         {
             if (serviceProvider != null) return;
 
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<ILogger>(logger);
             serviceCollection.AddSingleton<IConfiguration, ConfigurationSettings>();
             serviceCollection.AddSingleton<ITokenManager, TokenManager>();
             serviceCollection.AddSingleton<HttpClient, HttpClient>((sp) =>

@@ -16,7 +16,7 @@ namespace LobAccelerator.Library.Tests
             var tokenRetriever = new TokenRetriever(configuration);
             var tokenManager = new TokenManager(configuration);
             var scopes = new string[] {
-                $"api://{configuration["AzureAd:ClientId"]}/access_as_user"
+                $"api://{configuration["ClientId"]}/access_as_user"
             };
 
             //Act

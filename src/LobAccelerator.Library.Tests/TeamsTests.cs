@@ -3,6 +3,8 @@ using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -218,8 +220,9 @@ namespace LobAccelerator.Library.Tests
         private async Task<TeamsManager> CreateTeamsManagerAsync()
         {
             var httpClient = await GetHttpClientAsync();
+            var logger = Substitute.For<ILogger>();
             var oneDriveManager = new OneDriveManager(httpClient);
-            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
+            var teamsManager = new TeamsManager(httpClient, logger, oneDriveManager);
             return teamsManager;
         }
 
