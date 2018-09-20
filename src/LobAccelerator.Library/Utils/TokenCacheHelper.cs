@@ -50,15 +50,15 @@ namespace LobAccelerator.Library.Utils
             {
                 args.TokenCache.Deserialize(
                     StorageHelper.BlobExistsAsync(
-                        configuration["StorageConnectionString"],
-                        configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"])
+                        configuration["TokenCacheHelper:StorageConnectionString"],
+                        configuration["TokenCacheHelper:TokenCacheContainerName"],
+                        configuration["TokenCacheHelper:TokenCacheBlobName"])
                         .GetAwaiter().GetResult() //task.wait (s)
                     ? ProtectedData.Unprotect(
                         StorageHelper.DownloadBlobAsync(
-                            configuration["StorageConnectionString"],
-                            configuration["TokenCacheContainerName"],
-                            configuration["TokenCacheBlobName"])
+                            configuration["TokenCacheHelper:StorageConnectionString"],
+                            configuration["TokenCacheHelper:TokenCacheContainerName"],
+                            configuration["TokenCacheHelper:TokenCacheBlobName"])
                         .GetAwaiter().GetResult(),
                         null,
                         DataProtectionScope.CurrentUser)
@@ -75,9 +75,9 @@ namespace LobAccelerator.Library.Utils
                 {
                     // reflect changes in the persistent store
                     StorageHelper.UploadBlobAsync(
-                        configuration["StorageConnectionString"],
-                        configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"],
+                        configuration["TokenCacheHelper:StorageConnectionString"],
+                        configuration["TokenCacheHelper:TokenCacheContainerName"],
+                        configuration["TokenCacheHelper:TokenCacheBlobName"],
                         ProtectedData.Protect(args.TokenCache.Serialize(),
                                                 null,
                                                 DataProtectionScope.CurrentUser)
