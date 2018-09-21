@@ -68,7 +68,7 @@ namespace LobAccelerator.Library.Managers
             IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
             logger.LogInformation($"Finished copying files");
 
-            var results = Result.Combine(group, team, channels, members, files);
+            var results = Result.CombineSeparateResults(group, team, channels, members, files);
             if (results.HasError())
             {
                 logger.LogError($"There was an error with the TeamsManager: {results.GetError()}");
@@ -95,9 +95,13 @@ namespace LobAccelerator.Library.Managers
                     try
                     {
                         if (IsFile(resource))
+                        {
                             await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, channel.DisplayName, resource);
+                        }
                         else
+                        {
                             await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, channel.DisplayName, resource);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -206,7 +210,7 @@ namespace LobAccelerator.Library.Managers
         /// <returns></returns>
         public async Task<IResult> CreateChannelsAsync(string teamId, IEnumerable<ChannelResource> channels)
         {
-            var results = new List<Result<Channel>>();
+            var results = new List<IResult>();
             var uri = new Uri(_baseUri, $"{_apiVersion}/teams/{teamId}/channels");
 
             foreach (var channel in channels)
@@ -217,10 +221,19 @@ namespace LobAccelerator.Library.Managers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
-                    var tabresult = await AddTabToChannelBasedOnUrlAsync(
-                                                channel.SharepointListUrl, channel.SharepointListName,
-                                                teamId, result.Value.Id);
+                    if (
+                    !string.IsNullOrWhiteSpace(channel.SharepointListUrl)
+                    && !string.IsNullOrWhiteSpace(channel.SharepointListName)
+                    )
+                    {
+                        result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
+                        var tabresult = await AddTabToChannelBasedOnUrlAsync(
+                            channel.SharepointListName,
+                            channel.SharepointListUrl,
+                            teamId, result.Value.Id);
+
+                        results.Add(tabresult);
+                    }
                 }
                 else
                 {
@@ -235,11 +248,12 @@ namespace LobAccelerator.Library.Managers
             return Result.Combine(results);
         }
 
-        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(string tabName, string serviceUrl,
+        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(
+            string tabName, string serviceUrl,
             string teamId, string channelId)
         {
             var addTabUrl = $"{GraphAlphaApiVersion}/teams/{teamId}/channels/{channelId}/tabs";
-            var results = new List<Result<NoneResult>>();
+            var result = new Result<NoneResult>();
             var quickObject = new
             {
                 name = tabName,
@@ -253,7 +267,7 @@ namespace LobAccelerator.Library.Managers
                 }
             };
 
-            var result = new Result<NoneResult>();
+            
             try
             {
                 var response = await httpClient.PostContentAsync(addTabUrl, quickObject);

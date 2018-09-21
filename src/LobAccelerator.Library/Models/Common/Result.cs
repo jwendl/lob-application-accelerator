@@ -29,7 +29,7 @@ namespace LobAccelerator.Library.Models.Common
 
     public static class Result
     {
-        public static IResult Combine(params IResult[] results)
+        public static IResult Combine( IEnumerable<IResult> results)
         {
             if (!results.Any())
             {
@@ -43,18 +43,9 @@ namespace LobAccelerator.Library.Models.Common
                 : results.First();
         }
 
-        public static IResult Combine<T>(List<Result<T>> results)
+        public static IResult CombineSeparateResults(params IResult[] results)
         {
-            if (!results.Any())
-            {
-                return new Result<NoneResult>();
-            }
-
-            var failedResults = results.Where(x => x.HasError).ToList();
-
-            return failedResults.Any()
-                ? failedResults.First()
-                : results.First();
+            return Combine(results);
         }
     }
 
