@@ -22,7 +22,7 @@
             "testuser001@jwazuread.onmicrosoft.com"
           ],
           "sharepointList": "https://jwazuread.sharepoint.com/Shared%20Documents/Forms/AllItems.aspx?viewpath=%2FShared%20Documents%2FForms%2FAllItems.aspx",
-          "sharepointListName": "Test List"
+          "sharepointListName": "New TAB Created from API Calls"
         },
         {
           "displayName": "Finance",
