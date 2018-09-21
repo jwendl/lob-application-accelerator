@@ -238,13 +238,13 @@ namespace LobAccelerator.Library.Tests
             var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
             var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, authResult.AccessToken);
             var httpClient = new HttpClient(tokenManagerHttpMessageHandler);
-            httpClient.BaseAddress = new Uri(configurationManager["AzureAD:GraphBaseUri"]);
+            httpClient.BaseAddress = new Uri(configurationManager["GraphBaseUri"]);
             var desiredScopes = new string[]
             {
                 "Group.ReadWrite.All",
                 "User.ReadBasic.All"
             };
-            httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
+            httpClient.DefaultRequestHeaders.Add("X-LOBScopes", desiredScopes);
             return httpClient;
         }
     }

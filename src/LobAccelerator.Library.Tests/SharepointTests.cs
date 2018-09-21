@@ -22,7 +22,6 @@ namespace LobAccelerator.Library.Tests
             var configuration = new ConfigurationManager();
             var tokenRetriever = new TokenRetriever(configuration);
             var tokenManager = new TokenManager(configuration);
-            var sharepointManager = new SharePointManager(configuration, tokenManager);
             var scopes = new string[] {
                 $"api://{configuration["ClientId"]}/access_as_user"
             };
@@ -41,8 +40,7 @@ namespace LobAccelerator.Library.Tests
             var uri = await tokenManager.GetAuthUriAsync(scopes);
             var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
             var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
-
-            tokenManager.UpdateAccessToken(authResult.AccessToken);
+            var sharepointManager = new SharePointManager(configuration, tokenManager, authResult.AccessToken);
             var result = await sharepointManager.CreateSiteCollectionAsync(siteCollection);
 
             //Assert

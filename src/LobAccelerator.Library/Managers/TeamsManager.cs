@@ -32,13 +32,6 @@ namespace LobAccelerator.Library.Managers
             this.httpClient = httpClient;
             this.logger = logger;
 
-            var desiredScopes = new string[]
-            {
-                "Group.ReadWrite.All",
-                "User.ReadBasic.All"
-            };
-            this.httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
-
             _baseUri = new Uri("https://graph.microsoft.com/");
             _apiVersion = ConstantsExtension.TeamsApiVersion;
 
