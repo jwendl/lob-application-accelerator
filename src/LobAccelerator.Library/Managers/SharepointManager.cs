@@ -1,12 +1,10 @@
-﻿using Microsoft.SharePoint.Client;
-using LobAccelerator.Library.Interfaces;
+﻿using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models.Common;
-using LobAccelerator.Library.Models.SharePoint;
 using LobAccelerator.Library.Models.SharePoint.Collections;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Online.SharePoint.TenantAdministration;
+using Microsoft.SharePoint.Client;
+using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
 {
@@ -31,7 +29,7 @@ namespace LobAccelerator.Library.Managers
                 var result = new Result<SiteCollection>();
                 var endpoint = $"https://{configuration["SharePointTenantPrefix"]}.sharepoint.com";
                 var context = new ClientContext(endpoint);
-                context.ExecutingWebRequest += ContextExecutingWebRequestAsync;
+                context.ExecutingWebRequest += ContextExecutingWebRequest;
                 var tenant = new Tenant(context);
 
                 var properties = new SiteCreationProperties()
@@ -51,7 +49,7 @@ namespace LobAccelerator.Library.Managers
                 context.ExecuteQuery();
 
                 result.Value = siteCollection;
-                return result;
+                return await Task.FromResult(result);
             }
             catch (System.Exception ex)
             {
@@ -59,14 +57,17 @@ namespace LobAccelerator.Library.Managers
             }
         }
 
-        private async void ContextExecutingWebRequestAsync(object sender, WebRequestEventArgs e)
+        private void ContextExecutingWebRequest(object sender, WebRequestEventArgs e)
         {
             var desiredScopes = new string[]
             {
                 $"https://{configuration["SharePointTenantPrefix"]}.sharepoint.com/AllSites.FullControl"
             };
-            var authResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(this.accessToken, desiredScopes);
-            e.WebRequestExecutor.RequestHeaders.Add("Authorization", $"Bearer ${authResult.AccessToken}");
+            var authResultTask = tokenManager.GetOnBehalfOfAccessTokenAsync(accessToken, desiredScopes);
+
+            Task.WaitAll(authResultTask);
+
+            e.WebRequestExecutor.RequestHeaders.Add("Authorization", $"Bearer ${authResultTask.Result.AccessToken}");
         }
     }
 }
