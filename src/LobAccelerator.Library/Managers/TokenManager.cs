@@ -90,14 +90,11 @@ namespace LobAccelerator.Library.Managers
                     new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
-
-                //var user = new UserAssertion(accessToken);
+                
                 var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
                 var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                     user,
                     $"https://login.microsoftonline.com/{configuration["TenantId"]}");
-                //var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
-                //    user);
 
                 return result;
             }
