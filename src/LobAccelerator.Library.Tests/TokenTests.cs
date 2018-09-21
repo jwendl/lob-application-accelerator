@@ -1,6 +1,9 @@
 ﻿using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,9 +15,10 @@ namespace LobAccelerator.Library.Tests
         public async Task TokenManager()
         {
             //Arrange
-            var configuration = new ConfigurationManager();
+            var configuration = Substitute.For<IConfiguration>();
+            var logger = Substitute.For<ILogger>();
             var tokenRetriever = new TokenRetriever(configuration);
-            var tokenManager = new TokenManager(configuration);
+            var tokenManager = new TokenManager(configuration, logger);
             var scopes = new string[] {
                 $"api://{configuration["ClientId"]}/access_as_user"
             };
