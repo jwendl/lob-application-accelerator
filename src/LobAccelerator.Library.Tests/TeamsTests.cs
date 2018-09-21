@@ -231,7 +231,8 @@ namespace LobAccelerator.Library.Tests
             var scopes = new string[] {
                 $"api://{configurationManager["ClientId"]}/access_as_user"
             };
-            var tokenManager = new TokenManager(configurationManager);
+            var logger = Substitute.For<ILogger>();
+            var tokenManager = new TokenManager(configurationManager, logger);
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var uri = await tokenManager.GetAuthUriAsync(scopes);
             var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
