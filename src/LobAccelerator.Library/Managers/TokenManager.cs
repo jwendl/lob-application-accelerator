@@ -60,7 +60,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(mse, "Exception getting Auth Request Uri using scopes: [{0}].  " +
+                log.LogError(new EventId(0), mse, "Exception getting Auth Request Uri using scopes: [{0}].  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
                     string.Join(", ", scopes));
                 throw mse;
@@ -99,7 +99,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(mse, "Exception Getting Access Token using Auth Code: {0}.  " +
+                log.LogError(new EventId(0), mse, "Exception Getting Access Token using Auth Code: {0}.  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
                     authCode);
                 throw mse;
@@ -139,7 +139,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(mse, "Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>.  " +
+                log.LogError(new EventId(0), mse, "Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>.  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings.");
                 throw mse;
             }

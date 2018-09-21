@@ -4,6 +4,7 @@ using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -231,8 +232,8 @@ namespace LobAccelerator.Library.Tests
             var scopes = new string[] {
                 $"api://{configurationManager["ClientId"]}/access_as_user"
             };
-            var logger = Substitute.For<ILogger>();
-            var tokenManager = new TokenManager(configurationManager, logger);
+            var log = new ConsoleLogger("Default", null, true);
+            var tokenManager = new TokenManager(configurationManager, log);
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var uri = await tokenManager.GetAuthUriAsync(scopes);
             var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
