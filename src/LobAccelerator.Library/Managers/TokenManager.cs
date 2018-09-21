@@ -9,8 +9,7 @@ namespace LobAccelerator.Library.Managers
 {
     public interface ITokenManager
     {
-        Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(IEnumerable<string> scopes, string accessToken = null);
-        void UpdateAccessToken(string accessToken);
+        Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes);
     }
 
     public class TokenManager
@@ -18,18 +17,11 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly IConfiguration configuration;
         private readonly ITokenCacheHelper tokenCacheHelper;
-        private string _accessToken;
 
-        public TokenManager(IConfiguration configuration, string accessToken = null)
+        public TokenManager(IConfiguration configuration)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            this._accessToken = accessToken;
             this.tokenCacheHelper = new TokenCacheHelper(configuration);
-        }
-
-        public void UpdateAccessToken(string accessToken)
-        {
-            this._accessToken = accessToken;
         }
 
         public async Task<Uri> GetAuthUriAsync(IEnumerable<string> scopes)
@@ -84,10 +76,10 @@ namespace LobAccelerator.Library.Managers
             }
         }
 
-        public async Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(IEnumerable<string> scopes, string accessToken = null)
+        public async Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes)
         {
             try
-            {                
+            {
                 var clientTokenCache = new TokenCache();
                 var userTokenCache = tokenCacheHelper.FetchUserCache();
                 var appTokenCache = new TokenCache();
@@ -98,9 +90,8 @@ namespace LobAccelerator.Library.Managers
                     new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
-
-                var user = new UserAssertion(accessToken ?? _accessToken,
-                    "urn:ietf:params:oauth:grant-type:jwt-bearer");
+                
+                var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
                 var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                     user,
                     $"https://login.microsoftonline.com/{configuration["TenantId"]}");

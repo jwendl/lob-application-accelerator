@@ -27,32 +27,12 @@ namespace LobAccelerator.Library.Tests
             scopes = new string[] {
                 "Group.ReadWrite.All",
             };
-            var onBehalfOfResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(scopes,
-                authResult.AccessToken);
+            var onBehalfOfResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(
+                authResult.AccessToken,
+                scopes);
 
             //Assert
             Assert.NotNull(onBehalfOfResult);
-        }
-
-
-        [Fact]
-        public async Task ValidateAccessToken()
-        {
-            //Arrange
-            var configuration = new ConfigurationManager();
-            var tokenRetriever = new TokenRetriever(configuration);
-            var scopes = new string[] { "Group.ReadWrite.All",
-                $"api://{configuration["ClientId"]}/access_as_user" };
-            var expectedAudience = configuration["ExpectedAudience"];
-            var expectedIssuer = configuration["ExpectedIssuer"];
-
-            //Act
-            var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
-            //var validation = await AuthHelper.ValidateTokenAsync(token.access_token, expectedIssuer, expectedAudience, scopes);
-
-            //Assert
-            // We will only validate the On-behalf-of tokens...
-            //Assert.NotNull(validation);
         }
     }
 }
