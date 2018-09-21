@@ -1,68 +1,73 @@
 ﻿using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Models.Common;
-using LobAccelerator.Library.Models.SharePoint;
 using LobAccelerator.Library.Models.SharePoint.Collections;
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Online.SharePoint.TenantAdministration;
+using Microsoft.SharePoint.Client;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace LobAccelerator.Library.Managers
 {
     public class SharePointManager
         : ISharePointManager
     {
-        private readonly Uri baseUri;
-        private readonly HttpClient httpClient;
+        private readonly IConfiguration configuration;
+        private readonly ITokenManager tokenManager;
+        private readonly string accessToken;
 
-        public SharePointManager(Uri baseUri, HttpClient httpClient)
+        public SharePointManager(IConfiguration configuration, ITokenManager tokenManager, string accessToken)
         {
-            this.baseUri = baseUri;
-            this.httpClient = httpClient;
+            this.configuration = configuration;
+            this.tokenManager = tokenManager;
+            this.accessToken = accessToken;
         }
 
-        public async Task<IResult> CreateResourceAsync(SharePointResource sharePointResource)
+        public async Task<Result<SiteCollection>> CreateSiteCollectionAsync(SiteCollection siteCollection)
         {
-            var siteCollectionResult = await CreateSiteCollectionAsync(sharePointResource.DisplayName);
-
-            return Result.CombineSeparateResults(siteCollectionResult);
-        }
-
-        public async Task<Result<SiteCollection>> CreateSiteCollectionAsync(string title)
-        {
-            var requestUri = new Uri(baseUri, "/_api/Site/Collections");
-            var formDigest = await FetchFormDigestAsync(baseUri);
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-            httpRequestMessage.Headers.Authorization = httpClient.DefaultRequestHeaders.Authorization;
-            httpRequestMessage.Headers.Add("X-RequestDigest", formDigest);
-
-            var requestContent = new StringContent("{ '__metadata': { 'type': 'SP.Data.AnnouncementsListItem' }, 'Title': '" + title + "'}");
-            requestContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;odata=verbose");
-            httpRequestMessage.Content = requestContent;
-
-            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
-            if (httpResponseMessage.IsSuccessStatusCode)
+            try
             {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
+                var result = new Result<SiteCollection>();
+                var endpoint = $"https://{configuration["SharePointTenantPrefix"]}.sharepoint.com";
+                var context = new ClientContext(endpoint);
+                context.ExecutingWebRequest += ContextExecutingWebRequest;
+                var tenant = new Tenant(context);
+
+                var properties = new SiteCreationProperties()
+                {
+                    Url = siteCollection.Url,
+                    Owner = siteCollection.Owner,
+                    Title = siteCollection.Title,
+                    Template = siteCollection.Template,
+                    StorageMaximumLevel = siteCollection.StorageMaximumLevel,
+                    UserCodeMaximumLevel = siteCollection.UserCodeMaximumLevel
+                };
+
+                var op = tenant.CreateSite(properties);
+                context.Load(tenant);
+                context.Load(op, i => i.IsComplete);
+                // TODO: Fails with 400 Bad Request
+                context.ExecuteQuery();
+
+                result.Value = siteCollection;
+                return await Task.FromResult(result);
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        private async Task<string> FetchFormDigestAsync(Uri siteUri)
+        private void ContextExecutingWebRequest(object sender, WebRequestEventArgs e)
         {
-            //Get the form digest value in order to write data
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, new Uri(siteUri, "/_api/contextinfo"));
-            httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-            httpRequestMessage.Headers.Authorization = httpClient.DefaultRequestHeaders.Authorization;
-            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+            var desiredScopes = new string[]
+            {
+                $"https://{configuration["SharePointTenantPrefix"]}.sharepoint.com/AllSites.FullControl"
+            };
+            var authResultTask = tokenManager.GetOnBehalfOfAccessTokenAsync(accessToken, desiredScopes);
 
-            var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-            var xNamespace = "http://schemas.microsoft.com/ado/2007/08/dataservices";
-            var root = XElement.Parse(responseString);
-            var formDigestValue = root.Element(xNamespace + "FormDigestValue").Value;
+            Task.WaitAll(authResultTask);
 
-            return formDigestValue;
+            e.WebRequestExecutor.RequestHeaders.Add("Authorization", $"Bearer ${authResultTask.Result.AccessToken}");
         }
     }
 }
