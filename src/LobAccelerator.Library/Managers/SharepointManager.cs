@@ -26,7 +26,7 @@ namespace LobAccelerator.Library.Managers
         {
             var siteCollectionResult = await CreateSiteCollectionAsync(sharePointResource.DisplayName);
 
-            return Result.Combine(siteCollectionResult);
+            return Result.CombineSeparateResults(siteCollectionResult);
         }
 
         public async Task<Result<SiteCollection>> CreateSiteCollectionAsync(string title)

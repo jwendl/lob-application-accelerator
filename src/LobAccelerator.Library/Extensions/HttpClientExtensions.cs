@@ -22,7 +22,6 @@ namespace LobAccelerator.Library.Extensions
             }
             catch (Exception ex)
             {
-
                 throw;
             }
 
