@@ -23,6 +23,13 @@ namespace LobAccelerator.Library.Models.Teams
         [Description("Channel Members, will resolve to https://graph.microsoft.com/beta/directoryObjects/<id>. For <id> use the AD Object name like me@contoso.com.")]
         public IEnumerable<string> Members { get; set; }
 
+        [JsonProperty("sharepointList")]
+        [Description("Sharepoint list to be linked with the channel thru a TAB.")]
+        public string SharepointListUrl { get; set; }
+
+        [JsonProperty("sharepointListName")]
+        [Description("Sharepoint list name to show over the TAB")]
+        public string SharepointListName { get; set; }
 
         public ChannelResource()
         {
