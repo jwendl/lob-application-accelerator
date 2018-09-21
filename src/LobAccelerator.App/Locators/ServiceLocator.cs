@@ -30,6 +30,12 @@ namespace LobAccelerator.App.Locators
                 {
                     BaseAddress = new Uri(sp.GetRequiredService<IConfiguration>()["GraphBaseUri"])
                 };
+                var desiredScopes = new string[]
+                {
+                "Group.ReadWrite.All",
+                "User.ReadBasic.All"
+                };
+                httpClient.DefaultRequestHeaders.Add("X-LOBScopes", desiredScopes);
 
                 return httpClient;
             });
