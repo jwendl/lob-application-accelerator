@@ -6,6 +6,7 @@ using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
 using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using static LobAccelerator.Library.Extensions.ConstantsExtension;
 
 namespace LobAccelerator.Library.Managers
 {
@@ -23,19 +25,13 @@ namespace LobAccelerator.Library.Managers
         private readonly HttpClient httpClient;
         private readonly Uri _baseUri;
         private readonly string _apiVersion;
-        private readonly HttpResponseMessage responseDeletePerm;
+        private readonly ILogger logger;
         private readonly IOneDriveManager oneDriveManager;
 
-        public TeamsManager(HttpClient httpClient, IOneDriveManager oneDriveManager)
+        public TeamsManager(HttpClient httpClient, ILogger logger, IOneDriveManager oneDriveManager)
         {
             this.httpClient = httpClient;
-
-            var desiredScopes = new string[]
-            {
-                "Group.ReadWrite.All",
-                "User.ReadBasic.All"
-            };
-            this.httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
+            this.logger = logger;
 
             _baseUri = new Uri("https://graph.microsoft.com/");
             _apiVersion = ConstantsExtension.TeamsApiVersion;
@@ -45,13 +41,32 @@ namespace LobAccelerator.Library.Managers
 
         public async Task<IResult> CreateResourceAsync(TeamResource resource)
         {
+            logger.LogInformation($"Starting to create the group {resource.DisplayName}");
             Result<Group> group = await CreateGroupAsync(resource);
-            Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
-            IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
-            IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
-            IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
+            logger.LogInformation($"Finished creating the group {resource.DisplayName}");
 
-            return Result.Combine(group, team, channels, members, files);
+            logger.LogInformation($"Starting to create the team {resource.DisplayName}");
+            Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
+            logger.LogInformation($"Finished creating the group {resource.DisplayName}");
+
+            logger.LogInformation($"Starting to create {resource.Channels.Count()} channels");
+            IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
+            logger.LogInformation($"Finished creating {resource.Channels.Count()} channels");
+
+            logger.LogInformation($"Starting to create {resource.Members.Count()} members");
+            IResult members = await AddPeopleToChannelAsync(resource.Members, team.Value.Id);
+            logger.LogInformation($"Finished creating {resource.Members.Count()} members");
+
+            logger.LogInformation($"Starting to copy files");
+            IResult files = await CopyFilesToChannels(resource.Channels, team.Value.Id);
+            logger.LogInformation($"Finished copying files");
+
+            var results = Result.CombineSeparateResults(group, team, channels, members, files);
+            if (results.HasError())
+            {
+                logger.LogError($"There was an error with the TeamsManager: {results.GetError()}");
+            }
+            return results;
         }
 
         private async Task<IResult> CopyFilesToChannels(IEnumerable<ChannelResource> channels, string teamId)
@@ -73,9 +88,13 @@ namespace LobAccelerator.Library.Managers
                     try
                     {
                         if (IsFile(resource))
+                        {
                             await oneDriveManager.CopyFileFromOneDriveToTeams(teamId, channel.DisplayName, resource);
+                        }
                         else
+                        {
                             await oneDriveManager.CopyFolderFromOneDriveToTeams(teamId, channel.DisplayName, resource);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -184,7 +203,7 @@ namespace LobAccelerator.Library.Managers
         /// <returns></returns>
         public async Task<IResult> CreateChannelsAsync(string teamId, IEnumerable<ChannelResource> channels)
         {
-            var results = new List<Result<Channel>>();
+            var results = new List<IResult>();
             var uri = new Uri(_baseUri, $"{_apiVersion}/teams/{teamId}/channels");
 
             foreach (var channel in channels)
@@ -195,7 +214,19 @@ namespace LobAccelerator.Library.Managers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
+                    if (
+                    !string.IsNullOrWhiteSpace(channel.SharepointListUrl)
+                    && !string.IsNullOrWhiteSpace(channel.SharepointListName)
+                    )
+                    {
+                        result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
+                        var tabresult = await AddTabToChannelBasedOnUrlAsync(
+                            channel.SharepointListName,
+                            channel.SharepointListUrl,
+                            teamId, result.Value.Id);
+
+                        results.Add(tabresult);
+                    }
                 }
                 else
                 {
@@ -209,6 +240,49 @@ namespace LobAccelerator.Library.Managers
 
             return Result.Combine(results);
         }
+
+        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(
+            string tabName, string serviceUrl,
+            string teamId, string channelId)
+        {
+            var addTabUrl = $"{GraphAlphaApiVersion}/teams/{teamId}/channels/{channelId}/tabs";
+            var result = new Result<NoneResult>();
+            var quickObject = new
+            {
+                name = tabName,
+                teamsAppId = "com.microsoft.teamspace.tab.web",
+                configuration = new
+                {
+                    entityId = string.Empty,
+                    contentUrl = serviceUrl,
+                    removeUrl = string.Empty,
+                    websiteUrl = serviceUrl
+                }
+            };
+
+            
+            try
+            {
+                var response = await httpClient.PostContentAsync(addTabUrl, quickObject);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    result.HasError = true;
+                    result.Error = response.ReasonPhrase;
+                    result.DetailedError = responseString;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.HasError = true;
+                result.Error = ex.Message;
+                result.DetailedError = JsonConvert.SerializeObject(ex);
+            }
+
+            return result;
+        }
+
 
         public async Task<IResult> AddPeopleToChannelAsync(IEnumerable<string> members, string teamId)
         {

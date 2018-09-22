@@ -18,7 +18,7 @@ namespace LobAccelerator.Library.Managers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var scopes = request.Headers.GetValues("X-TMScopes");
+            var scopes = request.Headers.GetValues("X-LOBScopes");
             var authResult = await tokenManager.GetOnBehalfOfAccessTokenAsync(accessToken, scopes);
             if (authResult != null)
             {

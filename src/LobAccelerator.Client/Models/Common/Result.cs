@@ -1,8 +1,10 @@
-﻿using LobAccelerator.Library.Interfaces;
+﻿using LobAccelerator.Client.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace LobAccelerator.Library.Models.Common
+namespace LobAccelerator.Client.Models.Common
 {
     public class Result<T> : IResult
     {
@@ -10,12 +12,7 @@ namespace LobAccelerator.Library.Models.Common
         public bool HasError { get; set; } = false;
         public string Error { get; set; } = string.Empty;
         public string DetailedError { get; set; } = string.Empty;
-
-        bool IResult.HasError()
-        {
-            return HasError;
-        }
-
+        
         public string GetError()
         {
             return Error;
@@ -25,15 +22,20 @@ namespace LobAccelerator.Library.Models.Common
         {
             return DetailedError;
         }
+
+        bool IResult.HasError()
+        {
+            return HasError;
+        }
     }
 
     public static class Result
     {
-        public static IResult Combine( IEnumerable<IResult> results)
+        public static IResult Combine(params IResult[] results)
         {
             if (!results.Any())
             {
-                return new Result<NoneResult>();
+                return new Result<None>();
             }
 
             var failedResults = results.Where(x => x.HasError()).ToList();
@@ -43,11 +45,20 @@ namespace LobAccelerator.Library.Models.Common
                 : results.First();
         }
 
-        public static IResult CombineSeparateResults(params IResult[] results)
+        public static IResult Combine<T>(List<Result<T>> results)
         {
-            return Combine(results);
+            if (!results.Any())
+            {
+                return new Result<None>();
+            }
+
+            var failedResults = results.Where(x => x.HasError).ToList();
+
+            return failedResults.Any()
+                ? failedResults.First()
+                : results.First();
         }
     }
 
-    public class NoneResult { }
+    public class None { }
 }

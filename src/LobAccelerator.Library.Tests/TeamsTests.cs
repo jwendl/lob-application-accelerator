@@ -3,6 +3,9 @@ using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -218,8 +221,9 @@ namespace LobAccelerator.Library.Tests
         private async Task<TeamsManager> CreateTeamsManagerAsync()
         {
             var httpClient = await GetHttpClientAsync();
+            var logger = Substitute.For<ILogger>();
             var oneDriveManager = new OneDriveManager(httpClient);
-            var teamsManager = new TeamsManager(httpClient, oneDriveManager);
+            var teamsManager = new TeamsManager(httpClient, logger, oneDriveManager);
             return teamsManager;
         }
 
@@ -228,20 +232,21 @@ namespace LobAccelerator.Library.Tests
             var scopes = new string[] {
                 $"api://{configurationManager["ClientId"]}/access_as_user"
             };
-            var tokenManager = new TokenManager(configurationManager);
+            var log = new ConsoleLogger("Default", null, true);
+            var tokenManager = new TokenManager(configurationManager, log);
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var uri = await tokenManager.GetAuthUriAsync(scopes);
             var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
             var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
             var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, authResult.AccessToken);
             var httpClient = new HttpClient(tokenManagerHttpMessageHandler);
-            httpClient.BaseAddress = new Uri(configurationManager["AzureAD:GraphBaseUri"]);
+            httpClient.BaseAddress = new Uri(configurationManager["GraphBaseUri"]);
             var desiredScopes = new string[]
             {
                 "Group.ReadWrite.All",
                 "User.ReadBasic.All"
             };
-            httpClient.DefaultRequestHeaders.Add("X-TMScopes", desiredScopes);
+            httpClient.DefaultRequestHeaders.Add("X-LOBScopes", desiredScopes);
             return httpClient;
         }
     }
