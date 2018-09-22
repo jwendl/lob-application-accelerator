@@ -14,8 +14,18 @@ namespace LobAccelerator.Library.Extensions
         {
             var objectStr = JsonConvert.SerializeObject(content);
             var body = new StringContent(objectStr, Encoding.ASCII, "application/json");
+            HttpResponseMessage  resp;
+            try
+            {
+                 resp = await httpClient.PostAsync(url, body);
 
-            return await httpClient.PostAsync(url, body);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return resp;
         }
 
         public static async Task<HttpResponseMessage> GetContentAsync
