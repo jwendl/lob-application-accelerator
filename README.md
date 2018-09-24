@@ -78,6 +78,10 @@ This is an application to generate O365 resources based on a simplified JSON pay
 
 ```
 
+## Line of Business Client
+
+If you prefer provisioning resources through a CLI instead of doing an HTTP request directly, you can check the Line of Business client version: [Line of Business Accelerator Client](./docs/lob-client.md).
+
 ## Contributions
 
 If there is any services that you'd like to add to this that do not already have functionality built for, please feel free to modify the project LobAccelerator.Library as needed to add the additional functionality.
