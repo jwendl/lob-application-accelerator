@@ -34,7 +34,7 @@ namespace LobAccelerator.Library.Managers
             this.logger = logger;
 
             _baseUri = new Uri("https://graph.microsoft.com/");
-            _apiVersion = ConstantsExtension.TeamsApiVersion;
+            _apiVersion = TeamsApiVersion;
 
             this.oneDriveManager = oneDriveManager;
         }
@@ -47,7 +47,7 @@ namespace LobAccelerator.Library.Managers
 
             logger.LogInformation($"Starting to create the team {resource.DisplayName}");
             Result<Team> team = await CreateTeamAsync(group.Value.Id, resource);
-            logger.LogInformation($"Finished creating the group {resource.DisplayName}");
+            logger.LogInformation($"Finished creating the team {resource.DisplayName}");
 
             logger.LogInformation($"Starting to create {resource.Channels.Count()} channels");
             IResult channels = await CreateChannelsAsync(team.Value.Id, resource.Channels);
@@ -147,6 +147,7 @@ namespace LobAccelerator.Library.Managers
                 SecurityEnabled = false
             };
 
+            logger.LogInformation($"Creating group using {groupUri} and {JsonConvert.SerializeObject(requestContent)}");
             var response = await httpClient.PostContentAsync(groupUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -260,7 +261,7 @@ namespace LobAccelerator.Library.Managers
                 }
             };
 
-            
+
             try
             {
                 var response = await httpClient.PostContentAsync(addTabUrl, quickObject);
