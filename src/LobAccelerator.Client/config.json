@@ -1,0 +1,13 @@
+{
+  "AzureAd": {
+    "Resource": "https://graph.microsoft.com",
+    "ClientId": ""
+  },
+  "AzureStorageAccount": {
+    "ConnectionString": "",
+    "ContainerName": "TempLobFiles"
+  },
+  "LobEngine": {
+    "Endpoint": ""
+  }
+}
