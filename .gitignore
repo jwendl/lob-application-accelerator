@@ -5,7 +5,7 @@
 
 # Custom Ignores
 config.json
-# appsettings.test.json
+appsettings.test.json
 
 # User-specific files
 *.suo
