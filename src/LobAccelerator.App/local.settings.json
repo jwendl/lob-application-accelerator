@@ -1,0 +1,21 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "ApplicationId": "",
+    "ApplicationSecret": "",
+    "StorageConnectionString": "UseDevelopmentStorage=true;",
+    "TokenCacheContainerName": "tokencachecontainer",
+    "TokenCacheBlobName": "TokenCacheBlob",
+    "TenantId": "",
+    "ExpectedIssuer": "",
+    "ExpectedAudience": "",
+    "ClientId": "",
+    "ClientSecret": "",
+    "RedirectUri": "https://localhost/",
+    "Resource": "https://graph.microsoft.com/",
+    "GraphBaseUri": "https://graph.microsoft.com/"
+  }
+}
