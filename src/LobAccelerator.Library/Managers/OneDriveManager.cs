@@ -1,4 +1,4 @@
-﻿using LobAccelerator.Library.Interfaces;
+﻿using LobAccelerator.Library.Managers.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
 {
-    public class OneDriveManager : IOneDriveManager
+    public class OneDriveManager
+        : IOneDriveManager
     {
         private readonly HttpClient httpClient;
 

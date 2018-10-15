@@ -1,4 +1,5 @@
-﻿using LobAccelerator.Library.Utils;
+﻿using LobAccelerator.Library.Managers.Interfaces;
+using LobAccelerator.Library.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
@@ -8,23 +9,18 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers
 {
-    public interface ITokenManager
-    {
-        Task<AuthenticationResult> GetOnBehalfOfAccessTokenAsync(string accessToken, IEnumerable<string> scopes);
-    }
-
     public class TokenManager
         : ITokenManager
     {
         private readonly IConfiguration configuration;
-        private readonly ILogger log;
+        private readonly ILogger logger;
         private readonly ITokenCacheHelper tokenCacheHelper;
 
-        public TokenManager(IConfiguration configuration, ILogger log)
+        public TokenManager(IConfiguration configuration, ILogger logger)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            this.tokenCacheHelper = new TokenCacheHelper(configuration);
-            this.log = log;
+            tokenCacheHelper = new TokenCacheHelper(configuration);
+            this.logger = logger;
         }
 
         /// <summary>
@@ -39,7 +35,7 @@ namespace LobAccelerator.Library.Managers
         {
             try
             {
-                log.LogInformation("Getting Auth Request Uri using scopes: [{0}]...", string.Join(", ", scopes));
+                logger.LogInformation("Getting Auth Request Uri using scopes: [{0}]...", string.Join(", ", scopes));
 
                 var clientTokenCache = new TokenCache();
                 var userTokenCache = tokenCacheHelper.FetchUserCache();
@@ -60,7 +56,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(new EventId(0), mse, "Exception getting Auth Request Uri using scopes: [{0}].  " +
+                logger.LogError(new EventId(0), mse, "Exception getting Auth Request Uri using scopes: [{0}].  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
                     string.Join(", ", scopes));
                 throw mse;
@@ -80,7 +76,7 @@ namespace LobAccelerator.Library.Managers
         {
             try
             {
-                log.LogInformation("Getting Access Token using Auth Code: {0}...", authCode);
+                logger.LogInformation("Getting Access Token using Auth Code: {0}...", authCode);
 
                 var clientTokenCache = new TokenCache();
                 var userTokenCache = tokenCacheHelper.FetchUserCache();
@@ -99,7 +95,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(new EventId(0), mse, "Exception Getting Access Token using Auth Code: {0}.  " +
+                logger.LogError(new EventId(0), mse, "Exception Getting Access Token using Auth Code: {0}.  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
                     authCode);
                 throw mse;
@@ -117,7 +113,7 @@ namespace LobAccelerator.Library.Managers
         {
             try
             {
-                log.LogInformation("Getting On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>...");
+                logger.LogInformation("Getting On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>...");
 
                 var clientTokenCache = new TokenCache();
                 var userTokenCache = tokenCacheHelper.FetchUserCache();
@@ -129,7 +125,7 @@ namespace LobAccelerator.Library.Managers
                     new ClientCredential(configuration["ClientSecret"]),
                         userTokenCache,
                         appTokenCache);
-                
+
                 var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
                 var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
                     user,
@@ -139,7 +135,7 @@ namespace LobAccelerator.Library.Managers
             }
             catch (MsalException mse)
             {
-                log.LogError(new EventId(0), mse, "Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>.  " +
+                logger.LogError(new EventId(0), mse, "Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>.  " +
                     "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings.");
                 throw mse;
             }

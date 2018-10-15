@@ -1,23 +1,20 @@
-#define SINGLEPASS
-#undef SINGLEPASS
 using LobAccelerator.App.Locators;
 using LobAccelerator.App.Models;
-using LobAccelerator.Library.Extensions;
 using LobAccelerator.Library.Models;
-using LobAccelerator.Library.Models.Teams;
-using LobAccelerator.Library.Validators;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static LobAccelerator.App.Extensions.ConstantsExtension;
-
 
 namespace LobAccelerator.App.Functions
 {
@@ -25,92 +22,62 @@ namespace LobAccelerator.App.Functions
     {
         [FunctionName("StartDeployment")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post")]
-            HttpRequestMessage req,
-            [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)]
-            Parameter parameter,
-            [Table(PARAM_TABLE, PARAM_PARTITION_KEY)]
-            IAsyncCollector<Parameter> tokenParameters,
-            [Queue(REQUEST_QUEUE)]
-            CloudQueue  queue,
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestMessage req,
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY, PARAM_TOKEN_ROW)] Parameter parameter,
+            [Table(PARAM_TABLE, PARAM_PARTITION_KEY)] IAsyncCollector<Parameter> tokenParameters,
+            [Queue(TEAMS_REQUEST_QUEUE)] CloudQueue teamsRequestQueue,
+            [Queue(USERS_REQUEST_QUEUE)] CloudQueue usersRequestQueue,
+            [Queue(ARM_REQUEST_QUEUE)] CloudQueue armRequestQueue,
             ILogger log)
         {
+            log.LogInformation("C# HTTP trigger function has completely processed a request.");
+
             var accessToken = req.Headers.Authorization?.Parameter;
             ServiceLocator.BuildServiceProvider(log, accessToken);
 
-            (bool valid,
-            Workflow workflow,
-            List<string> validationStrings) = await ValidateBodyAndAuth(req);
+            var json = await req.Content.ReadAsStringAsync();
+            var jObject = JObject.Parse(json);
+            var fileText = File.ReadAllText(@"Schemas\workflow.schema.json");
+            var jsonSchema = JSchema.Parse(fileText);
+            var isValid = jObject.IsValid(jsonSchema, out IList<ValidationError> validationErrors);
 
-#if SINGLEPASS
-            log.LogDebug("DEBUG: Single pass mode executing a single team/workflow entry");
-            workflow.Teams = new List<TeamResource> { workflow.Teams.First() };
-#endif
-            log.LogInformation($"C# HTTP trigger function processing a {(!valid ? "in" : string.Empty)}valid request.");
-            if (valid)
+            log.LogInformation($"C# HTTP trigger function processing a {(!isValid ? "in" : string.Empty)}valid request.");
+            if (isValid)
             {
+                var workflow = await req.Content.ReadAsAsync<Workflow>();
                 parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, accessToken);
 
                 foreach (var team in workflow.Teams)
                 {
-                    var newWorkflow = new Workflow()
-                    {
-                        Teams = new List<TeamResource> { team }
-                    };
-
-                    var requestBody = JsonConvert.SerializeObject(newWorkflow);
-                    await queue.AddMessageAsync(new CloudQueueMessage(requestBody));
+                    var requestBody = JsonConvert.SerializeObject(team);
+                    await usersRequestQueue.AddMessageAsync(new CloudQueueMessage(requestBody));
                 }
-                log.LogInformation($"{workflow.Teams.Count()} Teams has been schedulled for creation");
-            }
+                log.LogInformation($"{workflow.Users.Count()} Users have been scheduled for creation");
 
-            var responseString = validationStrings.ToStringLines();
-            log.LogInformation("C# HTTP trigger function has completely processed a request.");
-
-            return valid ? (ActionResult)new OkObjectResult(
-                        $"{workflow.Teams.Count()} Teams are schedulled for creation")
-                        : new BadRequestObjectResult($"Invalid HttpRequest, reason: {responseString}");
-        }
-
-        private static async Task<(bool, Workflow, List<string>)>
-            ValidateBodyAndAuth(HttpRequestMessage req)
-        {
-            bool valid = true;
-            var workflow = await req.Content.ReadAsAsync<Workflow>();
-            List<string> validationStrings = new List<string>();
-
-            var validator = new TeamsInputValidator();
-            TeamsInputValidation configvalidation;
-
-            foreach (var team in workflow.Teams)
-            {
-                if (!validator.Validate(team, out configvalidation))
+                // Populate arm template queue
+                foreach (var armTemplate in workflow.ARMDeployments)
                 {
-                    valid = false;
+                    var requestBody = JsonConvert.SerializeObject(armTemplate);
+                    await armRequestQueue.AddMessageAsync(new CloudQueueMessage(requestBody));
                 }
+                log.LogInformation($"{workflow.ARMDeployments.Count()} ARM Deployments have been scheduled for creation");
 
-                var verbose = validator.GetVerboseValitadion(configvalidation);
-                verbose = $"Validation for {team.DisplayName}: {verbose}";
-                validationStrings.Add(verbose);
+                // Populate teams queue
+                foreach (var team in workflow.Teams)
+                {
+                    var requestBody = JsonConvert.SerializeObject(team);
+                    await teamsRequestQueue.AddMessageAsync(new CloudQueueMessage(requestBody));
+                }
+                log.LogInformation($"{workflow.Teams.Count()} Teams has been scheduled for creation");
+
+                return new OkObjectResult($"{workflow.Teams.Count()} Teams are scheduled for creation, {workflow.Users.Count()} Users are scheduled for creation and {workflow.ARMDeployments.Count()} ARM Deployments are scheduled for creation.");
             }
 
-            var authToken = req.Headers.Authorization;
-            if (string.IsNullOrWhiteSpace(authToken.Parameter))
-            {
-                valid = false;
-                configvalidation = TeamsInputValidation.NoAuthToken;
-                var verbose = validator.GetVerboseValitadion(configvalidation);
-                verbose = $"Validation for Request: {verbose}";
-                validationStrings.Add(verbose);
-            }
-
-            return (valid, workflow, validationStrings);
+            var errorJson = JsonConvert.SerializeObject(validationErrors);
+            return new BadRequestObjectResult($"Invalid HttpRequest, reason {errorJson}");
         }
 
-        private static async Task<Parameter> CreateOrUpdateTokenParameter(
-            Parameter parameter,
-            IAsyncCollector<Parameter> tokenParameters,
-            string authToken)
+        private static async Task<Parameter> CreateOrUpdateTokenParameter(Parameter parameter, IAsyncCollector<Parameter> tokenParameters, string authToken)
         {
             if (parameter != null)
             {
@@ -126,7 +93,9 @@ namespace LobAccelerator.App.Functions
                 };
 
                 await tokenParameters.AddAsync(parameter);
+                await tokenParameters.FlushAsync();
             }
+
             return parameter;
         }
     }

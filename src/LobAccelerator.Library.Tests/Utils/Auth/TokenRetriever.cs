@@ -21,6 +21,8 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private readonly string clientSecret;
         private readonly string redirectUri;
         private readonly string resource;
+        private readonly bool headlessUITestEnabled;
+        private ChromeOptions desiredCapabilities;
 
         private Dictionary<string, AzureAdToken> TokenCaching { get; set; }
 
@@ -35,6 +37,15 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             clientSecret = configuration["ClientSecret"];
             redirectUri = configuration["RedirectUri"];
             resource = configuration["Resource"];
+            headlessUITestEnabled = bool.Parse(configuration["HeadlessUITestEnabled"]);
+
+            desiredCapabilities = new ChromeOptions();
+            desiredCapabilities.AddArgument("--ignore-ssl-errors=true");
+            desiredCapabilities.AddArgument("--ssl-protocol=any");
+            if(headlessUITestEnabled)
+            {
+                desiredCapabilities.AddArgument("--headless");
+            }
 
             TokenCaching = new Dictionary<string, AzureAdToken>();
         }
@@ -96,7 +107,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private async Task<string> LoginAndGetAuthCodeAsync(string authorizeUrl, string[] parameters)
         {
             // Navigate to login page
-            IWebDriver driver = new ChromeDriver(@"Loader")
+            IWebDriver driver = new ChromeDriver(@"Loader", desiredCapabilities)
             {
                 Url = GetEndpointWithQueryParameters(authorizeUrl, parameters)
             };
@@ -127,7 +138,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
         private async Task<string> LoginAndGetAuthCodeByMsalUriAsync(Uri msalUri)
         {
             // Navigate to login page
-            IWebDriver driver = new ChromeDriver(@"Loader")
+            IWebDriver driver = new ChromeDriver(@"Loader", desiredCapabilities)
             {
                 Url = msalUri.AbsoluteUri
             };

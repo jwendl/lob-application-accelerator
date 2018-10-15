@@ -1,16 +1,14 @@
-﻿using Newtonsoft.Json;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
-namespace LobAccelerator.Library.Models
+namespace LobAccelerator.Library.Models.Teams
 {
-    [JsonObject("funSettings")]
     public class FunSettings
     {
-        [JsonProperty("allowGiphy")]
+        [DisplayName("Allow Giphy")]
         [Description("Whether or not giphy gifs can be used in the team.")]
         public bool AllowGiphy { get; set; }
 
-        [JsonProperty("giphyContentRating")]
+        [DisplayName("Giphy Content Rating")]
         [Description("What content rating to set for the giphy service.")]
         public string GiphyContentRating { get; set; }
     }

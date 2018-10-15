@@ -1,8 +1,6 @@
 ﻿using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.Threading.Tasks;
 using Xunit;

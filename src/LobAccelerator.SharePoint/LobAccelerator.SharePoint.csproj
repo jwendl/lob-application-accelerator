@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <AzureFunctionsVersion>v1</AzureFunctionsVersion>
@@ -6,19 +6,19 @@
   <ItemGroup>
     <Compile Include="..\LobAccelerator.Library\Configuration\ConfigurationSettings.cs" Link="Configuration\ConfigurationSettings.cs" />
     <Compile Include="..\LobAccelerator.Library\Interfaces\IResult.cs" Link="Interfaces\IResult.cs" />
+    <Compile Include="..\LobAccelerator.Library\Managers\Interfaces\ITokenManager.cs" Link="Interfaces\ITokenManager.cs" />
     <Compile Include="..\LobAccelerator.Library\Managers\TokenManager.cs" Link="Managers\TokenManager.cs" />
     <Compile Include="..\LobAccelerator.Library\Models\Common\Result.cs" Link="Common\Result.cs" />
     <Compile Include="..\LobAccelerator.Library\Models\SharePoint\Collections\SiteCollection.cs" Link="Models\SharePoint\Collections\SiteCollection.cs" />
-    <Compile Include="..\LobAccelerator.Library\Utils\StorageHelper.cs" Link="Utils\StorageHelper.cs" />
     <Compile Include="..\LobAccelerator.Library\Utils\TokenCacheHelper.cs" Link="Utils\TokenCacheHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0-preview2-35157" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.2.0-preview2-35157" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="2.0.1-preview" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.22" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="2.2.0-preview" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.21" />
     <PackageReference Include="Microsoft.SharePoint.Client" Version="14.0.4762.1000" />
-    <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.8029.1200" />
+    <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.8119.1200" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>

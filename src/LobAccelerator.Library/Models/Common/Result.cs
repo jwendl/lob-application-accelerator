@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace LobAccelerator.Library.Models.Common
 {
-    public class Result<T> : IResult
+    public class Result<T>
+        : IResult
     {
         public T Value { get; set; }
         public bool HasError { get; set; } = false;
@@ -29,7 +30,7 @@ namespace LobAccelerator.Library.Models.Common
 
     public static class Result
     {
-        public static IResult Combine( IEnumerable<IResult> results)
+        public static IResult Combine(IEnumerable<IResult> results)
         {
             if (!results.Any())
             {

@@ -1,10 +1,10 @@
 ﻿using LobAccelerator.Library.Extensions;
 using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Managers.Interfaces;
 using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Teams;
 using LobAccelerator.Library.Models.Teams.Channels;
 using LobAccelerator.Library.Models.Teams.Groups;
-using LobAccelerator.Library.Models.Teams.Members;
 using LobAccelerator.Library.Models.Teams.Teams;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -143,7 +143,7 @@ namespace LobAccelerator.Library.Managers
                 DisplayName = resource.DisplayName,
                 GroupTypes = new List<string> { GroupTypes.Unified.ToString() },
                 MailEnabled = true,
-                MailNickname = resource.MailNickname,
+                MailNickname = resource.MailNickname ?? resource.DisplayName.ToLowerInvariant().Replace(' ', '-'),
                 SecurityEnabled = false
             };
 
@@ -213,23 +213,7 @@ namespace LobAccelerator.Library.Managers
                 var response = await httpClient.PostContentAsync(uri.AbsoluteUri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    if (
-                    !string.IsNullOrWhiteSpace(channel.SharepointListUrl)
-                    && !string.IsNullOrWhiteSpace(channel.SharepointListName)
-                    )
-                    {
-                        result.Value = JsonConvert.DeserializeObject<Channel>(responseString);
-                        var tabresult = await AddTabToChannelBasedOnUrlAsync(
-                            channel.SharepointListName,
-                            channel.SharepointListUrl,
-                            teamId, result.Value.Id);
-
-                        results.Add(tabresult);
-                    }
-                }
-                else
+                if (!response.IsSuccessStatusCode)
                 {
                     result.HasError = true;
                     result.Error = response.ReasonPhrase;
@@ -242,9 +226,7 @@ namespace LobAccelerator.Library.Managers
             return Result.Combine(results);
         }
 
-        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(
-            string tabName, string serviceUrl,
-            string teamId, string channelId)
+        public async Task<IResult> AddTabToChannelBasedOnUrlAsync(string tabName, string serviceUrl, string teamId, string channelId)
         {
             var addTabUrl = $"{GraphAlphaApiVersion}/teams/{teamId}/channels/{channelId}/tabs";
             var result = new Result<NoneResult>();
@@ -260,7 +242,6 @@ namespace LobAccelerator.Library.Managers
                     websiteUrl = serviceUrl
                 }
             };
-
 
             try
             {
@@ -292,13 +273,11 @@ namespace LobAccelerator.Library.Managers
 
             foreach (var member in members)
             {
-
                 var result = new Result<NoneResult>();
                 try
                 {
-                    var user = await GetUserAsync(member);
-                    var channelObj = new CreateChannelGraphObject(user.Value);
-                    var response = await httpClient.PostContentAsync(addMemberUrl, channelObj);
+                    var addMemberBody = new AddGroupMemberBody(member);
+                    var response = await httpClient.PostContentAsync(addMemberUrl, addMemberBody);
                     var responseString = await response.Content.ReadAsStringAsync();
 
                     if (!response.IsSuccessStatusCode)
@@ -319,27 +298,6 @@ namespace LobAccelerator.Library.Managers
             }
 
             return Result.Combine(results);
-        }
-
-        public async Task<Result<User>> GetUserAsync(string memberEmail)
-        {
-            var result = new Result<User>();
-            var uri = new Uri(_baseUri, $"{ConstantsExtension.GraphApiVersion}/users?$filter=mail eq '{memberEmail}'&$select=id");
-
-            var response = await httpClient.GetContentAsync(uri.AbsoluteUri);
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            if (response.IsSuccessStatusCode)
-            {
-                result.Value = JsonConvert.DeserializeObject<User>(responseString);
-                return result;
-            }
-
-            result.HasError = true;
-            result.Error = response.ReasonPhrase;
-            result.DetailedError = responseString;
-
-            return result;
         }
 
         public async Task<string> SearchTeamAsync(string displayName)
@@ -368,20 +326,6 @@ namespace LobAccelerator.Library.Managers
             responseDeletePerm.EnsureSuccessStatusCode();
 
             return result;
-        }
-
-        private class CreateChannelGraphObject
-        {
-            private readonly string memberId;
-
-            [JsonProperty("@odata.id")]
-            public string DisplayName
-                => $"https://graph.microsoft.com/beta/directoryObjects/{memberId}";
-
-            public CreateChannelGraphObject(User user)
-            {
-                memberId = user.Value.Any() ? user.Value[0].Id : "0";
-            }
         }
     }
 }

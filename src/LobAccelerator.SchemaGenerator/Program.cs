@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,9 +15,13 @@ namespace LobAccelerator.SchemaGenerator
     {
         static void Main(string[] args)
         {
-            var generator = new JSchemaGenerator();
-            var schema = generator.Generate(typeof(Workflow));
+            var generator = new JSchemaGenerator()
+            {
+                DefaultRequired = Required.AllowNull,
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            };
 
+            var schema = generator.Generate(typeof(Workflow));
             using (var streamWriter = File.CreateText(@"workflow.schema.json"))
             using (var jsonWriter = new JsonTextWriter(streamWriter))
             {
@@ -32,7 +37,6 @@ namespace LobAccelerator.SchemaGenerator
                     {
                         DisplayName = "New Teams Team",
                         Description = "This is a team for teams.",
-                        MailNickname = "group",
                         Members = new List<string>()
                         {
                             "juswen@microsoft.com",

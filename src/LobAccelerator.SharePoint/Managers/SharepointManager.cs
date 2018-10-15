@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Managers.Interfaces;
 using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.SharePoint.Collections;
 using Microsoft.Extensions.Configuration;
