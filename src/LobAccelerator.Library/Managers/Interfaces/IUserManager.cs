@@ -1,13 +1,12 @@
 ﻿using LobAccelerator.Library.Interfaces;
-using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Users;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers.Interfaces
 {
     public interface IUserManager
-        : IResourceManager<UserResource>
+        : IResourceManager<UserResource, UserResourceResult>
     {
-        Task<Result<UserBody>> CreateUserAsync(UserResource userResource);
+        Task<UserBody> CreateUserAsync(UserResource userResource);
     }
 }

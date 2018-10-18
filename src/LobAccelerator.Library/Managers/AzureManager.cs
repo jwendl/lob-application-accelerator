@@ -1,7 +1,5 @@
-﻿using LobAccelerator.Library.Interfaces;
-using LobAccelerator.Library.Managers.Interfaces;
+﻿using LobAccelerator.Library.Managers.Interfaces;
 using LobAccelerator.Library.Models.Azure;
-using LobAccelerator.Library.Models.Common;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -33,9 +31,7 @@ namespace LobAccelerator.Library.Managers
                 ClientSecret = configuration["ARMServicePrincipalClientSecret"]
             };
 
-            var azureCredentials = new AzureCredentials(loginInfo,
-                configuration["TenantId"],
-                AzureEnvironment.AzureGlobalCloud);
+            var azureCredentials = new AzureCredentials(loginInfo, configuration["TenantId"], AzureEnvironment.AzureGlobalCloud);
 
             return Azure
                .Configure()
@@ -43,72 +39,33 @@ namespace LobAccelerator.Library.Managers
                .WithDefaultSubscription();
         }
 
-        public async Task<IResult> CreateResourceGroupIfNotExistsAsync(AzureResourceGroup resourceGroup)
+        public async Task CreateResourceGroupIfNotExistsAsync(AzureResourceGroup resourceGroup)
         {
-            try
+            log.LogInformation("Starting creation of resource group of {0}", resourceGroup.Name);
+
+            var azure = GetAzureClient();
+            var resourceGroupExists = await azure.ResourceGroups.ContainAsync(resourceGroup.Name);
+            if (!resourceGroupExists)
             {
-                log.LogInformation("Starting creation of resource group of {0}",
-                    resourceGroup.Name);
-
-                var azure = GetAzureClient();
-
-                var rgExists = await azure.ResourceGroups.ContainAsync(resourceGroup.Name);
-                if (!rgExists)
-                {
-                    await azure.ResourceGroups.Define(resourceGroup.Name).WithRegion(resourceGroup.Region).CreateAsync();
-                }
-
-                var result = new Result<bool>();
-                result.Value = true;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                var errorMsg = $"Exception encountered during creation of resource group {resourceGroup.Name}: {ex.GetType()} - {ex.Message}";
-                log.LogError(errorMsg);
-
-                var result = new Result<bool>();
-                result.HasError = true;
-                result.Error = errorMsg;
-                return result;
+                await azure.ResourceGroups.Define(resourceGroup.Name).WithRegion(resourceGroup.Region).CreateAsync();
             }
         }
 
-        public async Task<IResult> DeployARMTemplateAsync(ARMDeployment armDeployment)
+        public async Task<IDeployment> DeployARMTemplateAsync(ARMDeployment armDeployment)
         {
-            try
-            {
-                log.LogInformation("Starting deployment of {0} from Uri {1}",
-                    armDeployment.Name,
-                    armDeployment.TemplateUri.AbsoluteUri);
+            log.LogInformation("Starting deployment of {0} from Uri {1}", armDeployment.Name, armDeployment.TemplateUri.AbsoluteUri);
 
-                var azure = GetAzureClient();
+            var azure = GetAzureClient();
+            await CreateResourceGroupIfNotExistsAsync(armDeployment.ResourceGroup);
 
-                var rgResult = await CreateResourceGroupIfNotExistsAsync(armDeployment.ResourceGroup);
-                if (rgResult.HasError()) return rgResult;
+            var deployment = await azure.Deployments.Define(armDeployment.Name)
+                .WithExistingResourceGroup(armDeployment.ResourceGroup.Name)
+                .WithTemplateLink(armDeployment.TemplateUri.AbsoluteUri, armDeployment.TemplateContentVersion)
+                .WithParameters(armDeployment.TemplateParametersJson)
+                .WithMode(DeploymentMode.Complete)
+                .CreateAsync();
 
-                var deployment = await azure.Deployments.Define(armDeployment.Name)
-                    .WithExistingResourceGroup(armDeployment.ResourceGroup.Name)
-                    .WithTemplateLink(armDeployment.TemplateUri.AbsoluteUri, armDeployment.TemplateContentVersion)
-                    .WithParameters(armDeployment.TemplateParametersJson)
-                    .WithMode(DeploymentMode.Complete)
-                    .CreateAsync();
-
-                var result = new Result<IDeployment>();
-                result.Value = deployment;
-                return result;
-            }
-            catch (Exception ex)
-            {
-                var errorMsg =
-                    $"Exception encountered during ARM deployment of {armDeployment.Name} from uri {armDeployment.TemplateUri.AbsoluteUri}: {ex.GetType()} - {ex.Message}";
-                log.LogError(errorMsg);
-
-                var result = new Result<IDeployment>();
-                result.HasError = true;
-                result.Error = errorMsg;
-                return result;
-            }
+            return deployment;
         }
     }
 }

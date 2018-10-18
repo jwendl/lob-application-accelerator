@@ -1,6 +1,7 @@
 using LobAccelerator.Library.Configuration;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models.SharePoint.Collections;
+using LobAccelerator.Library.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,9 @@ namespace LobAccelerator.SharePoint
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             var configuration = new ConfigurationSettings();
-            var tokenManager = new TokenManager(configuration, log);
+            var storageService = new StorageService(configuration, log);
+            var tokenCacheService = new TokenCacheService(configuration, storageService);
+            var tokenManager = new TokenManager(configuration, tokenCacheService, log);
             var scopes = new string[] {
                 $"api://{configuration["ClientId"]}/access_as_user"
             };

@@ -1,7 +1,5 @@
 ﻿using LobAccelerator.Library.Extensions;
-using LobAccelerator.Library.Interfaces;
 using LobAccelerator.Library.Managers.Interfaces;
-using LobAccelerator.Library.Models.Common;
 using LobAccelerator.Library.Models.Users;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -15,8 +13,8 @@ namespace LobAccelerator.Library.Managers
     public class UserManager
         : IUserManager
     {
-        private readonly Uri _baseUri;
-        private readonly string _apiVersion;
+        private readonly Uri baseUri;
+        private readonly string apiVersion;
         private readonly ILogger logger;
         private readonly HttpClient httpClient;
 
@@ -25,11 +23,11 @@ namespace LobAccelerator.Library.Managers
             this.httpClient = httpClient;
             this.logger = logger;
 
-            _baseUri = new Uri("https://graph.microsoft.com/");
-            _apiVersion = TeamsApiVersion;
+            baseUri = new Uri("https://graph.microsoft.com/");
+            apiVersion = TeamsApiVersion;
         }
 
-        public async Task<IResult> CreateResourceAsync(UserResource resource)
+        public async Task<UserResourceResult> CreateResourceAsync(UserResource resource)
         {
             // Create the user
             logger.LogInformation($"Starting to create the user {resource.DisplayName}");
@@ -39,26 +37,23 @@ namespace LobAccelerator.Library.Managers
             // TODO: Assign the user a license
 
             // Combine and return results
-            var results = Result.CombineSeparateResults(userResult);
-            if (results.HasError())
+            return new UserResourceResult()
             {
-                logger.LogError($"There was an error with the UserManager: {results.GetError()}");
-            }
-
-            return results;
+                UserResult = userResult,
+            };
         }
 
-        public async Task<Result<UserBody>> CreateUserAsync(UserResource resource)
+        public async Task<UserBody> CreateUserAsync(UserResource resource)
         {
-            var result = new Result<UserBody>();
-            var userUri = new Uri(_baseUri, $"{_apiVersion}/users");
-            var requestContent = new UserBody
+            var result = new UserBody();
+            var userUri = new Uri(baseUri, $"{apiVersion}/users");
+            var requestContent = new UserBody()
             {
                 AccountEnabled = true,
                 DisplayName = resource.DisplayName,
                 MailNickname = resource.MailNickname,
                 UserPrincipalName = resource.UserPrincipalName,
-                PasswordProfile = new PasswordProfile
+                PasswordProfile = new PasswordProfile()
                 {
                     Password = resource.Password,
                     ForceChangePasswordNextSignIn = resource.ForceChangePasswordNextSignIn
@@ -70,17 +65,12 @@ namespace LobAccelerator.Library.Managers
             var response = await httpClient.PostContentAsync(userUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                result.Value = JsonConvert.DeserializeObject<UserBody>(responseString);
-                return result;
+                throw new InvalidOperationException($"There was an error with creating a user ({response.StatusCode}): {responseString}");
             }
 
-            result.HasError = true;
-            result.Error = response.ReasonPhrase;
-            result.DetailedError = responseString;
-
-            return result;
+            return JsonConvert.DeserializeObject<UserBody>(responseString);
         }
     }
 }

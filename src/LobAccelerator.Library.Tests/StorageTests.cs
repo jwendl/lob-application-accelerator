@@ -1,5 +1,9 @@
-﻿using LobAccelerator.Library.Tests.Utils.Configuration;
-using LobAccelerator.Library.Utils;
+﻿using LobAccelerator.Library.Services.Interfaces;
+using LobAccelerator.Library.Tests.Utils.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
@@ -9,14 +13,16 @@ namespace LobAccelerator.Library.Tests
 {
     public class StorageTests
     {
-        private readonly ConfigurationManager configuration;
-        private readonly string connectionString = "UseDevelopmentStorage=true;";
-        private readonly string containerName = "tokencachecontainer";
         private readonly string blobName = "TokenCacheBlob";
+        private readonly IServiceProvider serviceProvider;
 
         public StorageTests()
         {
-            configuration = new ConfigurationManager();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddScoped<ILogger, ConsoleLogger>();
+            serviceCollection.AddScoped<IConfiguration, ConfigurationManager>();
+            serviceCollection.AddScoped<IStorageService>();
+            serviceProvider = serviceCollection.BuildServiceProvider();
         }
 
         [Fact]
@@ -28,7 +34,8 @@ namespace LobAccelerator.Library.Tests
             random.NextBytes(bytes);
 
             // Act
-            var result = await StorageHelper.UploadBlobAsync(connectionString, containerName, blobName, bytes);
+            var storageService = serviceProvider.GetRequiredService<IStorageService>();
+            var result = await storageService.UploadBlobAsync(blobName, bytes);
 
             // Assert
             Assert.True(result);
@@ -43,8 +50,9 @@ namespace LobAccelerator.Library.Tests
             random.NextBytes(bytes);
 
             // Act
-            var uploaded = await StorageHelper.UploadBlobAsync(connectionString, containerName, blobName, bytes);
-            var exists = await StorageHelper.BlobExistsAsync(connectionString, containerName, blobName);
+            var storageService = serviceProvider.GetRequiredService<IStorageService>();
+            var uploaded = await storageService.UploadBlobAsync(blobName, bytes);
+            var exists = await storageService.BlobExistsAsync(blobName);
 
             // Assert
             Assert.True(uploaded);
@@ -60,10 +68,11 @@ namespace LobAccelerator.Library.Tests
             random.NextBytes(bytes);
 
             // Act
-            var uploaded = await StorageHelper.UploadBlobAsync(connectionString, containerName, blobName, bytes);
-            var existsAfterUploaded = await StorageHelper.BlobExistsAsync(connectionString, containerName, blobName);
-            var removed = await StorageHelper.DeleteBlobAsync(connectionString, containerName, blobName);
-            var existsAfterRemoved = await StorageHelper.BlobExistsAsync(connectionString, containerName, blobName);
+            var storageService = serviceProvider.GetRequiredService<IStorageService>();
+            var uploaded = await storageService.UploadBlobAsync(blobName, bytes);
+            var existsAfterUploaded = await storageService.BlobExistsAsync(blobName);
+            var removed = await storageService.DeleteBlobAsync(blobName);
+            var existsAfterRemoved = await storageService.BlobExistsAsync(blobName);
 
             // Assert
             Assert.True(uploaded);
@@ -82,11 +91,12 @@ namespace LobAccelerator.Library.Tests
             random.NextBytes(bytes);
 
             // Act
-            var uploaded = await StorageHelper.UploadBlobAsync(connectionString, containerName, blobName, bytes);
-            var exists = await StorageHelper.BlobExistsAsync(connectionString, containerName, blobName);
+            var storageService = serviceProvider.GetRequiredService<IStorageService>();
+            var uploaded = await storageService.UploadBlobAsync(blobName, bytes);
+            var exists = await storageService.BlobExistsAsync(blobName);
             if (uploaded && exists)
             {
-                downloadedBytes = await StorageHelper.DownloadBlobAsync(connectionString, containerName, blobName);
+                downloadedBytes = await storageService.DownloadBlobAsync(blobName);
             }
 
             // Assert

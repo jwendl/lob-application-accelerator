@@ -23,12 +23,13 @@ namespace LobAccelerator.App.Locators
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(logger);
             serviceCollection.AddSingleton<IConfiguration, ConfigurationSettings>();
+            serviceCollection.AddSingleton<ITokenCacheService, TokenCacheService>();
             serviceCollection.AddSingleton<ITokenManager, TokenManager>();
 
             serviceCollection.AddSingleton<HttpClient, HttpClient>((sp) =>
             {
                 var tokenManager = sp.GetRequiredService<ITokenManager>();
-                var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, accessToken);
+                var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(logger, tokenManager, accessToken);
 
                 var httpClient = new HttpClient(tokenManagerHttpMessageHandler)
                 {
@@ -47,13 +48,7 @@ namespace LobAccelerator.App.Locators
             serviceCollection.AddSingleton<IUserManager, UserManager>();
             serviceCollection.AddSingleton<IOneDriveManager, OneDriveManager>();
             serviceCollection.AddSingleton<IAzureManager, AzureManager>();
-
-            serviceCollection.AddSingleton<IStorageService, StorageService>((sp) =>
-            {
-                var connectionString = sp.GetRequiredService<IConfiguration>()["StorageConnectionString"];
-                var containerUri = sp.GetRequiredService<IConfiguration>()["StorageContainerUri"];
-                return new StorageService(connectionString, new Uri(containerUri), logger);
-            });
+            serviceCollection.AddSingleton<IStorageService, StorageService>();
 
             serviceProvider = serviceCollection.BuildServiceProvider();
         }

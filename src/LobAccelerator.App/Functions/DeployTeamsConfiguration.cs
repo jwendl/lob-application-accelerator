@@ -1,6 +1,6 @@
 using LobAccelerator.App.Locators;
 using LobAccelerator.App.Models;
-using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Managers.Interfaces;
 using LobAccelerator.Library.Models.Teams;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;

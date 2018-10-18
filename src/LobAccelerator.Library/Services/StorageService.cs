@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -14,9 +15,9 @@ namespace LobAccelerator.Library.Services
         private readonly CloudBlobContainer cloudBlobContainer;
         private readonly ILogger logger;
 
-        public StorageService(string connectionString, Uri containerUri, ILogger logger)
+        public StorageService(IConfiguration configuration, ILogger logger)
         {
-            var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
+            var cloudStorageAccount = CloudStorageAccount.Parse(configuration["StorageConnectionString"]);
             var policy = new SharedAccessAccountPolicy()
             {
                 // When the start time for the SAS is omitted, the start time is assumed to be the time when the storage service receives the request. 
@@ -31,6 +32,8 @@ namespace LobAccelerator.Library.Services
             var sasToken = cloudStorageAccount.GetSharedAccessSignature(policy);
             var storageCredentials = new StorageCredentials(sasToken);
 
+            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+            var containerUri = cloudBlobClient.GetContainerReference(configuration["TokenCacheContainerName"]).Uri;
             cloudBlobContainer = new CloudBlobContainer(containerUri, storageCredentials);
             this.logger = logger;
         }

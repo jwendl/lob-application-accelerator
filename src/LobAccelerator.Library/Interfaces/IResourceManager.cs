@@ -1,10 +1,9 @@
-﻿using LobAccelerator.Library.Models.Common;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Interfaces
 {
-    public interface IResourceManager<T>
+    public interface IResourceManager<TInput, TResult>
     {
-        Task<IResult> CreateResourceAsync(T resource);
+        Task<TResult> CreateResourceAsync(TInput resource);
     }
 }

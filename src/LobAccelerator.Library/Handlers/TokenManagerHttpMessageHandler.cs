@@ -1,4 +1,5 @@
 ﻿using LobAccelerator.Library.Managers.Interfaces;
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 using System.Net.Http;
@@ -11,12 +12,14 @@ namespace LobAccelerator.Library.Handlers
     public class TokenManagerHttpMessageHandler
         : DelegatingHandler
     {
+        private readonly ILogger logger;
         private readonly ITokenManager tokenManager;
         private readonly string accessToken;
         private readonly PolicyBuilder<HttpResponseMessage> retryPolicy;
 
-        public TokenManagerHttpMessageHandler(ITokenManager tokenManager, string accessToken)
+        public TokenManagerHttpMessageHandler(ILogger logger, ITokenManager tokenManager, string accessToken)
         {
+            this.logger = logger;
             this.tokenManager = tokenManager;
             this.accessToken = accessToken;
             retryPolicy = Policy
@@ -36,9 +39,21 @@ namespace LobAccelerator.Library.Handlers
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authResult.AccessToken);
             }
 
-            return await retryPolicy
-                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)))
+            var httpResponseMessage = await retryPolicy
+                .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt)), async (hrm, timeSpan, retryCount, context) =>
+                {
+                    var message = await hrm.Result.Content.ReadAsStringAsync();
+                    logger.LogWarning($"Retrying request for {request.RequestUri} as it failed {retryCount + 1} time(s) so far with {hrm.Result.StatusCode}. Waiting {timeSpan} next attempt. Message: {message}.");
+                })
                 .ExecuteAsync(() => base.SendAsync(request, cancellationToken));
+
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                logger.LogError($"The request to {request.RequestUri} failed too many times.");
+                throw new InvalidOperationException($"The request to {request.RequestUri} failed too many times.");
+            }
+
+            return httpResponseMessage;
         }
     }
 }

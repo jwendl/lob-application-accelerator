@@ -1,12 +1,12 @@
-﻿using LobAccelerator.Library.Interfaces;
-using LobAccelerator.Library.Models.Azure;
+﻿using LobAccelerator.Library.Models.Azure;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
 using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Managers.Interfaces
 {
     public interface IAzureManager
     {
-        Task<IResult> CreateResourceGroupIfNotExistsAsync(AzureResourceGroup resourceGroup);
-        Task<IResult> DeployARMTemplateAsync(ARMDeployment armDeployment);
+        Task CreateResourceGroupIfNotExistsAsync(AzureResourceGroup resourceGroup);
+        Task<IDeployment> DeployARMTemplateAsync(ARMDeployment armDeployment);
     }
 }

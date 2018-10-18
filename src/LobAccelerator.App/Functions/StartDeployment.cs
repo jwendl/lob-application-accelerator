@@ -47,9 +47,9 @@ namespace LobAccelerator.App.Functions
                 var workflow = await req.Content.ReadAsAsync<Workflow>();
                 parameter = await CreateOrUpdateTokenParameter(parameter, tokenParameters, accessToken);
 
-                foreach (var team in workflow.Teams)
+                foreach (var user in workflow.Users)
                 {
-                    var requestBody = JsonConvert.SerializeObject(team);
+                    var requestBody = JsonConvert.SerializeObject(user);
                     await usersRequestQueue.AddMessageAsync(new CloudQueueMessage(requestBody));
                 }
                 log.LogInformation($"{workflow.Users.Count()} Users have been scheduled for creation");

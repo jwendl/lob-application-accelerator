@@ -1,5 +1,5 @@
 ﻿using LobAccelerator.Library.Managers.Interfaces;
-using LobAccelerator.Library.Utils;
+using LobAccelerator.Library.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
@@ -14,12 +14,12 @@ namespace LobAccelerator.Library.Managers
     {
         private readonly IConfiguration configuration;
         private readonly ILogger logger;
-        private readonly ITokenCacheHelper tokenCacheHelper;
+        private readonly ITokenCacheService tokenCacheService;
 
-        public TokenManager(IConfiguration configuration, ILogger logger)
+        public TokenManager(IConfiguration configuration, ITokenCacheService tokenCacheService, ILogger logger)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            tokenCacheHelper = new TokenCacheHelper(configuration);
+            this.tokenCacheService = tokenCacheService;
             this.logger = logger;
         }
 
@@ -38,28 +38,18 @@ namespace LobAccelerator.Library.Managers
                 logger.LogInformation("Getting Auth Request Uri using scopes: [{0}]...", string.Join(", ", scopes));
 
                 var clientTokenCache = new TokenCache();
-                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var userTokenCache = tokenCacheService.FetchUserCache();
                 var appTokenCache = new TokenCache();
 
-                var msalApp = new ConfidentialClientApplication(
-                    configuration["ClientId"],
-                    configuration["RedirectUri"],
-                    new ClientCredential(configuration["ClientSecret"]),
-                        userTokenCache,
-                        appTokenCache);
-
-                var result = await msalApp.GetAuthorizationRequestUrlAsync(scopes,
-                    null,
-                    null);
+                var msalApp = new ConfidentialClientApplication(configuration["ClientId"], configuration["RedirectUri"], new ClientCredential(configuration["ClientSecret"]), userTokenCache, appTokenCache);
+                var result = await msalApp.GetAuthorizationRequestUrlAsync(scopes, null, null);
 
                 return result;
             }
-            catch (MsalException mse)
+            catch (MsalException msalException)
             {
-                logger.LogError(new EventId(0), mse, "Exception getting Auth Request Uri using scopes: [{0}].  " +
-                    "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
-                    string.Join(", ", scopes));
-                throw mse;
+                logger.LogError(new EventId(0), msalException, $"Exception getting Auth Request Uri using scopes: [string.Join(", ", scopes)]. Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...");
+                throw msalException;
             }
         }
 
@@ -79,26 +69,18 @@ namespace LobAccelerator.Library.Managers
                 logger.LogInformation("Getting Access Token using Auth Code: {0}...", authCode);
 
                 var clientTokenCache = new TokenCache();
-                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var userTokenCache = tokenCacheService.FetchUserCache();
                 var appTokenCache = new TokenCache();
 
-                var msalApp = new ConfidentialClientApplication(
-                    configuration["ClientId"],
-                    configuration["RedirectUri"],
-                    new ClientCredential(configuration["ClientSecret"]),
-                        userTokenCache,
-                        appTokenCache);
-
-                var result = await msalApp.AcquireTokenByAuthorizationCodeAsync(authCode, scopes);
+                var msalApplication = new ConfidentialClientApplication(configuration["ClientId"], configuration["RedirectUri"], new ClientCredential(configuration["ClientSecret"]), userTokenCache, appTokenCache);
+                var result = await msalApplication.AcquireTokenByAuthorizationCodeAsync(authCode, scopes);
 
                 return result;
             }
-            catch (MsalException mse)
+            catch (MsalException msalException)
             {
-                logger.LogError(new EventId(0), mse, "Exception Getting Access Token using Auth Code: {0}.  " +
-                    "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...",
-                    authCode);
-                throw mse;
+                logger.LogError(new EventId(0), msalException, $"Exception Getting Access Token using Auth Code: {authCode}. Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...");
+                throw msalException;
             }
         }
 
@@ -116,28 +98,19 @@ namespace LobAccelerator.Library.Managers
                 logger.LogInformation("Getting On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>...");
 
                 var clientTokenCache = new TokenCache();
-                var userTokenCache = tokenCacheHelper.FetchUserCache();
+                var userTokenCache = tokenCacheService.FetchUserCache();
                 var appTokenCache = new TokenCache();
 
-                var msalApp = new ConfidentialClientApplication(
-                    configuration["ClientId"],
-                    configuration["RedirectUri"],
-                    new ClientCredential(configuration["ClientSecret"]),
-                        userTokenCache,
-                        appTokenCache);
-
+                var msalApplication = new ConfidentialClientApplication(configuration["ClientId"], configuration["RedirectUri"], new ClientCredential(configuration["ClientSecret"]), userTokenCache, appTokenCache);
                 var user = new UserAssertion(accessToken, "urn:ietf:params:oauth:grant-type:jwt-bearer");
-                var result = await msalApp.AcquireTokenOnBehalfOfAsync(scopes,
-                    user,
-                    $"https://login.microsoftonline.com/{configuration["TenantId"]}");
+                var result = await msalApplication.AcquireTokenOnBehalfOfAsync(scopes, user, $"https://login.microsoftonline.com/{configuration["TenantId"]}");
 
                 return result;
             }
-            catch (MsalException mse)
+            catch (MsalException msalException)
             {
-                logger.LogError(new EventId(0), mse, "Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>.  " +
-                    "Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings.");
-                throw mse;
+                logger.LogError(new EventId(0), msalException, $"Exception On-Behalf-of Access Token using accessToken: <EXCLUDED FOR SECURITY>. Look at the app registration and make sure you have the correct ClientId, ClientSecret and RedirectUri configured in the app settings...");
+                throw msalException;
             }
         }
     }

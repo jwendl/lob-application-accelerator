@@ -12,7 +12,14 @@ using System.Threading.Tasks;
 
 namespace LobAccelerator.Library.Tests.Utils.Auth
 {
+    public interface ITokenRetriever
+    {
+        Task<AzureAdToken> GetTokenByAuthorizationCodeFlowAsync(params string[] desiredScopes);
+        Task<string> GetAuthCodeByMsalUriAsync(Uri msalUri);
+    }
+
     public class TokenRetriever
+        : ITokenRetriever
     {
         private readonly string tenantId;
         private readonly string username;
@@ -42,7 +49,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             desiredCapabilities = new ChromeOptions();
             desiredCapabilities.AddArgument("--ignore-ssl-errors=true");
             desiredCapabilities.AddArgument("--ssl-protocol=any");
-            if(headlessUITestEnabled)
+            if (headlessUITestEnabled)
             {
                 desiredCapabilities.AddArgument("--headless");
             }
@@ -168,9 +175,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
 
         private async Task<AzureAdToken> GetTokenAsync(string authorizationCode, string scopes)
         {
-            string tokenUrl =
-                string.Format("https://login.microsoftonline.com/{0}/oauth2/token",
-                    tenantId);
+            string tokenUrl = string.Format("https://login.microsoftonline.com/{0}/oauth2/token", tenantId);
 
             using (var httpClient = new HttpClient())
             {
@@ -186,8 +191,7 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             }
         }
 
-        private List<KeyValuePair<string, string>> BuildBodyForTokenRequest
-            (string authorizationCode, string scopes)
+        private List<KeyValuePair<string, string>> BuildBodyForTokenRequest(string authorizationCode, string scopes)
         {
             return new List<KeyValuePair<string, string>>
                 {
@@ -200,8 +204,6 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
                     new KeyValuePair<string, string>("scope", scopes)
                 };
         }
-
-        #region Processing String Methods
 
         private string ConcatScopes(string[] scopes)
         {
@@ -221,7 +223,5 @@ namespace LobAccelerator.Library.Tests.Utils.Auth
             var query = parameters.Aggregate((first, second) => $"{first}&{second}");
             return $"{url}?{query}";
         }
-
-        #endregion
     }
 }
