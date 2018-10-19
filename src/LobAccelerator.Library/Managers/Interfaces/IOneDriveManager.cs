@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace LobAccelerator.Library.Interfaces
+namespace LobAccelerator.Library.Managers.Interfaces
 {
     public interface IOneDriveManager
     {

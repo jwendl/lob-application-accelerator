@@ -1,0 +1,404 @@
+{
+  "definitions": {
+    "ARMDeployment": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "templateUri": {
+          "title": "Template Uri",
+          "description": "Uri for ARM template to deploy to Azure",
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "templateContentVersion": {
+          "title": "Template Content Version",
+          "description": "Content Version for ARM template to deploy to Azure",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "templateParametersJson": {
+          "title": "Template Parameters Json",
+          "description": "Template parameters for ARM template to deploy to Azure",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "title": "Name",
+          "description": "Resource Name",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "regionName": {
+          "title": "Region Name",
+          "description": "Region to deploy the resource to",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "region": {
+          "$ref": "#/definitions/Region"
+        },
+        "resourceGroup": {
+          "$ref": "#/definitions/AzureResourceGroup"
+        }
+      },
+      "required": [
+        "templateUri",
+        "templateContentVersion",
+        "templateParametersJson",
+        "name",
+        "regionName",
+        "region",
+        "resourceGroup"
+      ]
+    },
+    "AzureResourceGroup": {
+      "title": "Resource Group",
+      "description": "Name of resource group to deploy the resource group to",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "name": {
+          "title": "Name",
+          "description": "Resource Name",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "regionName": {
+          "title": "Region Name",
+          "description": "Region to deploy the resource to",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "region": {
+          "$ref": "#/definitions/Region"
+        },
+        "resourceGroup": {
+          "$ref": "#/definitions/AzureResourceGroup"
+        }
+      },
+      "required": [
+        "name",
+        "regionName",
+        "region",
+        "resourceGroup"
+      ]
+    },
+    "ChannelResource": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "displayName": {
+          "title": "Display Name",
+          "description": "The display name of the channel.",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "The description of the channel.",
+          "type": "string"
+        },
+        "files": {
+          "title": "Files",
+          "description": "The files to be copied from the user's OneDrive for Business to Teams channel.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "members": {
+          "title": "Members",
+          "description": "Channel Members, will resolve to https://graph.microsoft.com/beta/directoryObjects/<id>. For <id> use the AD Object name like me@contoso.com.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "displayName",
+        "description"
+      ]
+    },
+    "FunSettings": {
+      "title": "Fun Settings",
+      "description": "Fun settings for giphy and stuff.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "allowGiphy": {
+          "title": "Allow Giphy",
+          "description": "Whether or not giphy gifs can be used in the team.",
+          "type": "boolean"
+        },
+        "giphyContentRating": {
+          "title": "Giphy Content Rating",
+          "description": "What content rating to set for the giphy service.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "allowGiphy",
+        "giphyContentRating"
+      ]
+    },
+    "MemberSettings": {
+      "title": "Member Settings",
+      "description": "Member settings for creating a team.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "allowCreateUpdateChannels": {
+          "title": "Allow Create Update Channels",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allowCreateUpdateChannels"
+      ]
+    },
+    "MessagingSettings": {
+      "title": "Messaging Settings",
+      "description": "Messaging settings for creating a team.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "allowUserEditMessages": {
+          "title": "Allow User Edit Messages",
+          "description": "",
+          "type": "boolean"
+        },
+        "allowUserDeleteMessages": {
+          "title": "Allow User Delete Messages",
+          "description": "",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allowUserEditMessages",
+        "allowUserDeleteMessages"
+      ]
+    },
+    "Region": {
+      "title": "Region",
+      "description": "Region to deploy the resource to",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "TeamResource": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "cloneFromId": {
+          "title": "Clone From Id",
+          "description": "The id of the team's page to clone from.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "displayName": {
+          "title": "Display Name",
+          "description": "The name to display in the address book for the group.",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "The description of the teams group.",
+          "type": "string"
+        },
+        "mailNickname": {
+          "title": "Mail Nickname",
+          "description": "The mail alias for the team.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "memberSettings": {
+          "$ref": "#/definitions/MemberSettings"
+        },
+        "messagingSettings": {
+          "$ref": "#/definitions/MessagingSettings"
+        },
+        "funSettings": {
+          "$ref": "#/definitions/FunSettings"
+        },
+        "members": {
+          "title": "Members",
+          "description": "Group Members, will resolve to https://graph.microsoft.com/beta/directoryObjects/<id>. For <id> use the AD Object name like me@contoso.com.",
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "channels": {
+          "title": "Channels",
+          "description": "Channels to add to this team.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChannelResource"
+          }
+        }
+      },
+      "required": [
+        "displayName",
+        "members",
+        "channels"
+      ]
+    },
+    "UserResource": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "displayName": {
+          "title": "Display Name",
+          "description": "The name to display in the address book for the user.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mailNickname": {
+          "title": "Mail Nickname",
+          "description": "The mail alias for the user.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "userPrincipalName": {
+          "title": "User Principal Name",
+          "description": "The user principal name (someuser@contoso.com).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "password": {
+          "title": "Password",
+          "description": "The password for the user.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "forceChangePasswordNextSignIn": {
+          "title": "Force Change Password Next Sign In",
+          "description": "true if the user must change her password on the next login; otherwise false.",
+          "type": "boolean"
+        },
+        "usageLocation": {
+          "title": "Usage Location",
+          "description": "A two letter country code (ISO standard 3166). Required for users that will be assigned licenses due to legal requirement to check for availability of services in countries.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "displayName",
+        "mailNickname",
+        "userPrincipalName",
+        "password",
+        "forceChangePasswordNextSignIn",
+        "usageLocation"
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "teams": {
+      "title": "Teams",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/TeamResource"
+      }
+    },
+    "users": {
+      "title": "Users",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/UserResource"
+      }
+    },
+    "armDeployments": {
+      "title": "ARM Deployments",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/ARMDeployment"
+      }
+    }
+  }
+}

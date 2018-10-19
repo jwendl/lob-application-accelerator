@@ -1,6 +1,9 @@
 ﻿using LobAccelerator.Library.Configuration;
-using LobAccelerator.Library.Interfaces;
+using LobAccelerator.Library.Handlers;
 using LobAccelerator.Library.Managers;
+using LobAccelerator.Library.Managers.Interfaces;
+using LobAccelerator.Library.Services;
+using LobAccelerator.Library.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,13 +21,15 @@ namespace LobAccelerator.App.Locators
             if (serviceProvider != null) return;
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<ILogger>(logger);
+            serviceCollection.AddSingleton(logger);
             serviceCollection.AddSingleton<IConfiguration, ConfigurationSettings>();
+            serviceCollection.AddSingleton<ITokenCacheService, TokenCacheService>();
             serviceCollection.AddSingleton<ITokenManager, TokenManager>();
+
             serviceCollection.AddSingleton<HttpClient, HttpClient>((sp) =>
             {
                 var tokenManager = sp.GetRequiredService<ITokenManager>();
-                var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, accessToken);
+                var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(logger, tokenManager, accessToken);
 
                 var httpClient = new HttpClient(tokenManagerHttpMessageHandler)
                 {
@@ -32,16 +37,18 @@ namespace LobAccelerator.App.Locators
                 };
                 var desiredScopes = new string[]
                 {
-                "Group.ReadWrite.All",
-                "User.ReadBasic.All"
+                    "Group.ReadWrite.All",
+                    "User.ReadBasic.All"
                 };
                 httpClient.DefaultRequestHeaders.Add("X-LOBScopes", desiredScopes);
 
                 return httpClient;
             });
             serviceCollection.AddSingleton<ITeamsManager, TeamsManager>();
+            serviceCollection.AddSingleton<IUserManager, UserManager>();
             serviceCollection.AddSingleton<IOneDriveManager, OneDriveManager>();
-            serviceCollection.AddSingleton<IWorkflowManager, WorkflowManager>();
+            serviceCollection.AddSingleton<IAzureManager, AzureManager>();
+            serviceCollection.AddSingleton<IStorageService, StorageService>();
 
             serviceProvider = serviceCollection.BuildServiceProvider();
         }

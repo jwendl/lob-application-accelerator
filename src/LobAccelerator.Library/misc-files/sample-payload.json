@@ -1,0 +1,39 @@
+{
+    "eventName": "E-1234",
+    "eventDescription": "National Games 2018",
+    "eventDomainName": "e1234@govevents.au",
+    "eventStartDate": "29-10-2018",
+    "collaborationGroups": [{"groupName": "football", "groupDescription": "Users stationed at the football stadium"},{"groupName": "trackAndFields", "groupDescription": "Users stationed at the track and field arena"},{"groupName": "pool", "groupDescription": "Users stationed at the main swimming pool"}],
+    "subscriptionDetails": {
+        "subscriptionId": "2j82je-3433-4564-4554-64464545",
+        "tenantId": "22d7cf86-2370-4935-8b4c-13bd0d50db37"
+    },
+    "customResourceARMTemplateDeployFileUri": "ARM template to create custom resources",
+    "customResourceARMTemplateParametersFileUri": "Parameters file to create custom resources",
+    "controlRoomAppArtifactUrl": "Web Deploy package url for the control room application",
+    "fieldUsageAppBackendApiArtifactUrl": "Web Deploy package url of the field usage App backend API",
+    "EventUsers": [
+        {
+            "userFirstName": "John",
+            "userLastName": "Doe",
+            "email": "john.doe@outlook.com",
+            "roles": [
+                "eventAdministrator",
+                "commandPostUser"
+            ],
+            "officeSkus": ["E3","E5"],
+            "associatedCollaborationGroups": ["football", "trackAndFields"]
+        },
+        {
+            "userFirstName": "Jane",
+            "userLastName": "Doe",
+            "email": "jane.doe@outlook.com",
+            "roles": [
+                "fieldUser"
+            ],
+            "officeSkus": ["E5"],
+            "associatedCollaborationGroups": ["trackAndFields"]
+
+        }
+    ]
+}

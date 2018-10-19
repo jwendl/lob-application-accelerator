@@ -1,70 +1,56 @@
 {
   "teams": [
     {
-      "displayName": "My MS Teams Group",
-      "description": "My MS Teams Group Description",
-      "mailNickName": "my1teaamsgroup",
+      "displayName": "Sample Team",
+      "description": "This is an automatically provisioned sample team",
+      "mailNickName": "sampleteam",
       "members": [
-        "jwendl@jwazuread.onmicrosoft.com",
         "testuser001@jwazuread.onmicrosoft.com",
-        "altagin@jwazuread.onmicrosoft.com"
+        "testuser002@jwazuread.onmicrosoft.com"
       ],
       "channels": [
         {
-          "displayName": "Welcome!",
-          "description": "my channel one description",
+          "displayName": "Welcome",
+          "description": "The welcome channel",
           "files": [
             "TransferFiles/Welcome/Introduction/WelcomeCSE.pptx",
             "TransferFiles/Welcome/Docs"
           ],
           "members": [
-            "jwendl@jwazuread.onmicrosoft.com",
             "testuser001@jwazuread.onmicrosoft.com"
-          ],
-          "sharepointList": "https://jwazuread.sharepoint.com/Shared%20Documents/Forms/AllItems.aspx?viewpath=%2FShared%20Documents%2FForms%2FAllItems.aspx",
-          "sharepointListName": "New TAB Created from API Calls"
+          ]
         },
         {
           "displayName": "Finance",
-          "description": "my channel two description",
+          "description": "The finance channel",
           "files": [
             "TransferFiles/Welcome/Docs/Finances.xlsx",
             "Hotel.xlsx"
           ],
           "members": [
-            "jwendl@jwazuread.onmicrosoft.com",
-            "testuser001@jwazuread.onmicrosoft.com"
-          ]
-        }
-      ]
-    },
-    {
-      "displayName": "My Second Teams Group",
-      "description": "My Second Teams Group Description",
-      "mailNickName": "my1teaamsgroup",
-      "members": [
-        "testuser001@jwazuread.onmicrosoft.com",
-        "jwendl@jwazuread.onmicrosoft.com"
-
-      ],
-      "channels": [
-        {
-          "displayName": "Second team my channel one",
-          "description": "Second team my channel one description",
-          "azFilesFolderPath": "/team-files-2/",
-          "members": [
-            "testuser001@jwazuread.onmicrosoft.com"
-          ]
-        },
-        {
-          "displayName": "my channel two",
-          "description": "my channel two description",
-          "azFilesFolderPath": "/team-files-alt/",
-          "members": [
-            "jwendl@jwazuread.onmicrosoft.com"
+            "testuser002@jwazuread.onmicrosoft.com"
           ]
         }
       ]
     }
-  ]
+  ],
+  "users": [
+    {
+      "displayName": "Test One",
+      "mailNickname": "testuser001",
+      "userPrincipalName": "testuser001@jwazuread.onmicrosoft.com",
+      "password": "temp1@3$",
+      "forceChangePasswordNextSignIn": false,
+      "usageLocation": "US"
+    },
+    {
+      "displayName": "Test Two",
+      "mailNickname": "testuser002",
+      "userPrincipalName": "testuser002@jwazuread.onmicrosoft.com",
+      "password": "temp1@3$",
+      "forceChangePasswordNextSignIn": false,
+      "usageLocation": "US"
+    }
+  ],
+  "armDeployments": []
 }

@@ -1,5 +1,5 @@
 ﻿using LobAccelerator.Library.Interfaces;
-using LobAccelerator.Library.Models.Common;
+using LobAccelerator.Library.Managers.Interfaces;
 using LobAccelerator.Library.Models.SharePoint.Collections;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Online.SharePoint.TenantAdministration;
@@ -22,11 +22,10 @@ namespace LobAccelerator.Library.Managers
             this.accessToken = accessToken;
         }
 
-        public async Task<Result<SiteCollection>> CreateSiteCollectionAsync(SiteCollection siteCollection)
+        public async Task<SiteCollection> CreateSiteCollectionAsync(SiteCollection siteCollection)
         {
             try
             {
-                var result = new Result<SiteCollection>();
                 var endpoint = $"https://{configuration["SharePointTenantPrefix"]}.sharepoint.com";
                 var context = new ClientContext(endpoint);
                 context.ExecutingWebRequest += ContextExecutingWebRequest;
@@ -48,8 +47,7 @@ namespace LobAccelerator.Library.Managers
                 // TODO: Fails with 400 Bad Request
                 context.ExecuteQuery();
 
-                result.Value = siteCollection;
-                return await Task.FromResult(result);
+                return await Task.FromResult(siteCollection);
             }
             catch (System.Exception ex)
             {

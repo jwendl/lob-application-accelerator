@@ -1,9 +1,10 @@
 using LobAccelerator.Library.Configuration;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models.SharePoint.Collections;
+using LobAccelerator.Library.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http;
@@ -14,12 +15,14 @@ namespace LobAccelerator.SharePoint
     public static class CreateSiteCollection
     {
         [FunctionName("CreateSiteCollection")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, ILogger log)
         {
-            log.Info("C# HTTP trigger function processed a request.");
+            log.LogInformation("C# HTTP trigger function processed a request.");
 
             var configuration = new ConfigurationSettings();
-            var tokenManager = new TokenManager(configuration);
+            var storageService = new StorageService(configuration, log);
+            var tokenCacheService = new TokenCacheService(configuration, storageService);
+            var tokenManager = new TokenManager(configuration, tokenCacheService, log);
             var scopes = new string[] {
                 $"api://{configuration["ClientId"]}/access_as_user"
             };

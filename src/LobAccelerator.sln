@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.Library.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.Client", "LobAccelerator.Client\LobAccelerator.Client.csproj", "{94C051AC-9867-450C-B63D-D5912DB72D60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobAccelerator.SharePoint", "LobAccelerator.SharePoint\LobAccelerator.SharePoint.csproj", "{4AEA1510-C052-4C8C-B13E-AA532F8752FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobAccelerator.SharePoint", "LobAccelerator.SharePoint\LobAccelerator.SharePoint.csproj", "{4AEA1510-C052-4C8C-B13E-AA532F8752FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

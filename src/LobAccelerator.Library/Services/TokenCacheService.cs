@@ -1,24 +1,22 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using LobAccelerator.Library.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
 using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace LobAccelerator.Library.Utils
+namespace LobAccelerator.Library.Services
 {
-    public interface ITokenCacheHelper
-    {
-        TokenCache FetchUserCache();
-    }
-
-    public class TokenCacheHelper
-        : ITokenCacheHelper
+    public class TokenCacheService
+        : ITokenCacheService
     {
         private readonly IConfiguration configuration;
+        private readonly IStorageService storageService;
 
-        public TokenCacheHelper(IConfiguration configuration)
+        public TokenCacheService(IConfiguration configuration, IStorageService storageService)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
         }
 
         /// <summary>
@@ -49,19 +47,13 @@ namespace LobAccelerator.Library.Utils
         {
             lock (FileLock)
             {
-                var existTask = StorageHelper.BlobExistsAsync(
-                        configuration["StorageConnectionString"],
-                        configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"]);
+                var existTask = storageService.BlobExistsAsync(configuration["TokenCacheBlobName"]);
 
                 Task.WaitAll(existTask);
 
                 if (existTask.Result)
                 {
-                    var fileTask = StorageHelper.DownloadBlobAsync(
-                        configuration["StorageConnectionString"],
-                        configuration["TokenCacheContainerName"],
-                        configuration["TokenCacheBlobName"]);
+                    var fileTask = storageService.DownloadBlobAsync(configuration["TokenCacheBlobName"]);
 
                     Task.WaitAll(fileTask);
 
@@ -81,11 +73,7 @@ namespace LobAccelerator.Library.Utils
             {
                 lock (FileLock)
                 {
-                    var fileTask = StorageHelper.UploadBlobAsync(
-                            configuration["StorageConnectionString"],
-                            configuration["TokenCacheContainerName"],
-                            configuration["TokenCacheBlobName"],
-                            ProtectedData.Protect(args.TokenCache.Serialize(), null, DataProtectionScope.CurrentUser));
+                    var fileTask = storageService.UploadBlobAsync(configuration["TokenCacheBlobName"], ProtectedData.Protect(args.TokenCache.Serialize(), null, DataProtectionScope.CurrentUser));
 
                     Task.WaitAll(fileTask);
 

@@ -1,8 +1,13 @@
+using LobAccelerator.Library.Handlers;
 using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models;
 using LobAccelerator.Library.Models.Teams;
+using LobAccelerator.Library.Services;
+using LobAccelerator.Library.Services.Interfaces;
 using LobAccelerator.Library.Tests.Utils.Auth;
 using LobAccelerator.Library.Tests.Utils.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using NSubstitute;
@@ -17,10 +22,17 @@ namespace LobAccelerator.Library.Tests
 {
     public class TeamsTests
     {
-        private static readonly ConfigurationManager configurationManager =
-            new ConfigurationManager();
-        private static readonly TokenRetriever tokenRetriever
-            = new TokenRetriever(configurationManager);
+        private readonly IServiceProvider serviceProvider;
+
+        public TeamsTests()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddScoped<ILogger, ConsoleLogger>();
+            serviceCollection.AddScoped<IConfiguration, ConfigurationManager>();
+            serviceCollection.AddScoped<ITokenCacheService, TokenCacheService>();
+            serviceCollection.AddScoped<ITokenRetriever, TokenRetriever>();
+            serviceProvider = serviceCollection.BuildServiceProvider();
+        }
 
         public Workflow CreateWorkflow(int teamNumber)
         {
@@ -74,10 +86,7 @@ namespace LobAccelerator.Library.Tests
             var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
-            var result = await teamsManager.CreateGroupAsync(team);
-
-            //Assert
-            Assert.False(result.HasError);
+            await teamsManager.CreateGroupAsync(team);
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -94,10 +103,9 @@ namespace LobAccelerator.Library.Tests
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
-            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Id, team);
 
             //Assert
-            Assert.False(teamResult.HasError);
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -114,11 +122,11 @@ namespace LobAccelerator.Library.Tests
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
-            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
-            var channelsResult = await teamsManager.CreateChannelsAsync(teamResult.Value.Id, team.Channels);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Id, team);
+            var channelsResult = await teamsManager.CreateChannelsAsync(teamResult.Id, team.Channels);
 
             //Assert
-            Assert.False(channelsResult.HasError());
+            Assert.True(channelsResult.Any());
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -135,11 +143,10 @@ namespace LobAccelerator.Library.Tests
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
-            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
-            var membersResult = await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Value.Id);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Id, team);
+            await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Id);
 
             //Assert
-            Assert.False(membersResult.HasError());
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -153,21 +160,20 @@ namespace LobAccelerator.Library.Tests
             var teamNumber = new Random().Next();
             var team = CreateWorkflow(teamNumber).Teams.First();
             team.Members = new List<string>()
-                        {
-                            "jwendl@jwazuread.onmicrosoft.com",
-                            "testuser001@jwazuread.onmicrosoft.com",
-                            "user@othertenat.onmicrosoft.com"
-                        };
+            {
+                "jwendl@jwazuread.onmicrosoft.com",
+                "testuser001@jwazuread.onmicrosoft.com",
+                "user@othertenat.onmicrosoft.com"
+            };
 
             var teamsManager = await CreateTeamsManagerAsync();
 
             //Act
             var groupResult = await teamsManager.CreateGroupAsync(team);
-            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Value.Id, team);
-            var membersResult = await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Value.Id);
+            var teamResult = await teamsManager.CreateTeamAsync(groupResult.Id, team);
+            await teamsManager.AddPeopleToChannelAsync(team.Members, teamResult.Id);
 
             //Assert
-            Assert.True(membersResult.HasError());
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -186,7 +192,6 @@ namespace LobAccelerator.Library.Tests
             var result = await teamsManager.CreateResourceAsync(team);
 
             //Assert
-            Assert.False(result.HasError());
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -211,7 +216,6 @@ namespace LobAccelerator.Library.Tests
             var result = await teamsManager.CreateResourceAsync(team);
 
             //Assert
-            Assert.False(result.HasError());
 
             //Teardown
             var groupId = await teamsManager.SearchTeamAsync(team.DisplayName);
@@ -229,18 +233,22 @@ namespace LobAccelerator.Library.Tests
 
         private async Task<HttpClient> GetHttpClientAsync()
         {
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            var tokenRetriever = serviceProvider.GetRequiredService<ITokenRetriever>();
+            var tokenCacheService = serviceProvider.GetRequiredService<ITokenCacheService>();
+
             var scopes = new string[] {
-                $"api://{configurationManager["ClientId"]}/access_as_user"
+                $"api://{configuration["ClientId"]}/access_as_user"
             };
             var log = new ConsoleLogger("Default", null, true);
-            var tokenManager = new TokenManager(configurationManager, log);
+            var tokenManager = new TokenManager(configuration, tokenCacheService, log);
             var token = await tokenRetriever.GetTokenByAuthorizationCodeFlowAsync(scopes);
             var uri = await tokenManager.GetAuthUriAsync(scopes);
             var authCode = await tokenRetriever.GetAuthCodeByMsalUriAsync(uri);
             var authResult = await tokenManager.GetAccessTokenFromCodeAsync(authCode, scopes);
-            var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(tokenManager, authResult.AccessToken);
+            var tokenManagerHttpMessageHandler = new TokenManagerHttpMessageHandler(log, tokenManager, authResult.AccessToken);
             var httpClient = new HttpClient(tokenManagerHttpMessageHandler);
-            httpClient.BaseAddress = new Uri(configurationManager["GraphBaseUri"]);
+            httpClient.BaseAddress = new Uri(configuration["GraphBaseUri"]);
             var desiredScopes = new string[]
             {
                 "Group.ReadWrite.All",

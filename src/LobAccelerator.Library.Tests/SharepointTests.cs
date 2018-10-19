@@ -1,7 +1,7 @@
 ﻿using LobAccelerator.Library.Managers;
 using LobAccelerator.Library.Models.SharePoint.Collections;
+using LobAccelerator.Library.Services.Interfaces;
 using LobAccelerator.Library.Tests.Utils.Auth;
-using LobAccelerator.Library.Tests.Utils.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -19,7 +19,9 @@ namespace LobAccelerator.Library.Tests
             var configuration = Substitute.For<IConfiguration>();
             var log = Substitute.For<ILogger>();
             var tokenRetriever = new TokenRetriever(configuration);
-            var tokenManager = new TokenManager(configuration, log);
+            var tokenCacheService = Substitute.For<ITokenCacheService>();
+
+            var tokenManager = new TokenManager(configuration, tokenCacheService, log);
             var scopes = new string[] {
                 $"api://{configuration["ClientId"]}/access_as_user"
             };
