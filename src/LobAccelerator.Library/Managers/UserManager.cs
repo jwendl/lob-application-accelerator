@@ -64,12 +64,6 @@ namespace LobAccelerator.Library.Managers
             logger.LogInformation($"Creating user using {userUri} and {JsonConvert.SerializeObject(requestContent)}");
             var response = await httpClient.PostContentAsync(userUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException($"There was an error with creating a user ({response.StatusCode}): {responseString}");
-            }
-
             return JsonConvert.DeserializeObject<UserBody>(responseString);
         }
     }

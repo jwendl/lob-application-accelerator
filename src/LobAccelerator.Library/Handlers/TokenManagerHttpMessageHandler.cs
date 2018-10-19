@@ -49,8 +49,9 @@ namespace LobAccelerator.Library.Handlers
 
             if (!httpResponseMessage.IsSuccessStatusCode)
             {
-                logger.LogError($"The request to {request.RequestUri} failed too many times.");
-                throw new InvalidOperationException($"The request to {request.RequestUri} failed too many times.");
+                var message = await httpResponseMessage.Content.ReadAsStringAsync();
+                logger.LogError($"The request to {request.RequestUri} failed too many times with error code {httpResponseMessage.StatusCode}. The message is: {message}.");
+                throw new InvalidOperationException($"The request to {request.RequestUri} failed too many times with error code {httpResponseMessage.StatusCode}. The message is: {message}.");
             }
 
             return httpResponseMessage;

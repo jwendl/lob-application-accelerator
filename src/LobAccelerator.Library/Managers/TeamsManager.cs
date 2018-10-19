@@ -141,11 +141,6 @@ namespace LobAccelerator.Library.Managers
             var response = await httpClient.PostContentAsync(groupUri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException($"There was an error with creating a group ({response.StatusCode}): {responseString}");
-            }
-
             return JsonConvert.DeserializeObject<Group>(responseString);
         }
 
@@ -167,11 +162,6 @@ namespace LobAccelerator.Library.Managers
             var response = await httpClient.PutContentAsync(uri.AbsoluteUri, requestContent);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException($"There was an error with creating a team ({response.StatusCode}): {responseString}");
-            }
-
             return JsonConvert.DeserializeObject<Team>(responseString);
         }
 
@@ -190,11 +180,6 @@ namespace LobAccelerator.Library.Managers
             {
                 var response = await httpClient.PostContentAsync(uri.AbsoluteUri, channel);
                 var responseString = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException($"There was an error with creating a channel ({response.StatusCode}): {responseString}");
-                }
 
                 var result = JsonConvert.DeserializeObject<Channel>(responseString);
                 results.Add(result);
@@ -220,12 +205,7 @@ namespace LobAccelerator.Library.Managers
             };
 
             var response = await httpClient.PostContentAsync(addTabUrl, quickObject);
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException($"There was an error with adding a tab to a channel ({response.StatusCode}): {responseString}");
-            }
+            await response.Content.ReadAsStringAsync();
         }
 
 
@@ -237,12 +217,7 @@ namespace LobAccelerator.Library.Managers
             {
                 var addMemberBody = new AddGroupMemberBody(member);
                 var response = await httpClient.PostContentAsync(addMemberUrl, addMemberBody);
-                var responseString = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException($"There was an error with adding a member to a team ({response.StatusCode}): {responseString}");
-                }
+                await response.Content.ReadAsStringAsync();
             }
         }
 
