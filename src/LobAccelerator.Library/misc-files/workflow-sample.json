@@ -41,7 +41,8 @@
       "userPrincipalName": "testuser001@jwazuread.onmicrosoft.com",
       "password": "temp1@3$",
       "forceChangePasswordNextSignIn": false,
-      "usageLocation": "US"
+      "usageLocation": "US",
+      "licenseName":  "DEVELOPERPACK"
     },
     {
       "displayName": "Test Two",
@@ -49,7 +50,8 @@
       "userPrincipalName": "testuser002@jwazuread.onmicrosoft.com",
       "password": "temp1@3$",
       "forceChangePasswordNextSignIn": false,
-      "usageLocation": "US"
+      "usageLocation": "US",
+      "licenseName": "DEVELOPERPACK"
     }
   ],
   "armDeployments": []
