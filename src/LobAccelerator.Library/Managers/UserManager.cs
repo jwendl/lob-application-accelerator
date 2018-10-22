@@ -33,17 +33,20 @@ namespace LobAccelerator.Library.Managers
         {
             // Create the user
             logger.LogInformation($"Starting to create the user {resource.DisplayName}");
-            var userResult = await CreateUserAsync(resource);
+            var result = await CreateUserAsync(resource);
             logger.LogInformation($"Finished creating the user {resource.DisplayName}");
 
-            // Assign a license to the user
-            logger.LogInformation($"Starting to assign license {resource.LicenseName} to user {userResult.DisplayName}");
-            var licenseResult = await AssignLicenseToUser(userResult.Id, resource.LicenseName);
-            logger.LogInformation($"Finished assigning license {resource.LicenseName} to user {userResult.DisplayName}");
+            // Assign a license to the user, if provided
+            if (!String.IsNullOrWhiteSpace(resource.LicenseName))
+            {
+                logger.LogInformation($"Starting to assign license {resource.LicenseName} to user {result.DisplayName}");
+                result = await AssignLicenseToUser(result.Id, resource.LicenseName);
+                logger.LogInformation($"Finished assigning license {resource.LicenseName} to user {result.DisplayName}");
+            }
 
             return new UserResourceResult()
             {
-                UserResult = licenseResult
+                UserResult = result
             };
         }
 

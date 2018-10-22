@@ -37,6 +37,7 @@ namespace LobAccelerator.Library.Models.Users
 
         [DisplayName("License Name")]
         [JsonProperty("licenseName")]
+        [Description("The license (unique SKU display name) to assign to the user.")]
         public string LicenseName { get; set; }
     }
 }
