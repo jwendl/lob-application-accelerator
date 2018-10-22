@@ -5,6 +5,10 @@ namespace LobAccelerator.Library.Models.Users
 {
     public class UserBody
     {
+        [DisplayName("ID")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
         [DisplayName("Account Enabled")]
         [JsonProperty("accountEnabled")]
         public bool AccountEnabled { get; set; }
