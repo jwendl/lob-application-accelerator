@@ -78,7 +78,7 @@ namespace LobAccelerator.Library.Managers
         {
             // Get license details from the given string name
             var licenses = await GetSubscribedSkus();
-            var license = licenses.FirstOrDefault(sku => sku.SkuPartNumber.Equals(licenseName, StringComparison.OrdinalIgnoreCase));
+            var license = licenses.FirstOrDefault(sku => String.Equals(sku.SkuPartNumber, licenseName, StringComparison.OrdinalIgnoreCase));
             if (license == null)
             {
                 throw new ArgumentException($"The license {licenseName} is not valid for this organization.");
