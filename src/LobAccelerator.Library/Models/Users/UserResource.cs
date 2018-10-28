@@ -34,5 +34,10 @@ namespace LobAccelerator.Library.Models.Users
         [JsonProperty("usageLocation")]
         [Description("A two letter country code (ISO standard 3166). Required for users that will be assigned licenses due to legal requirement to check for availability of services in countries.")]
         public string UsageLocation { get; set; }
+
+        [DisplayName("License Name")]
+        [JsonProperty("licenseName")]
+        [Description("The license (unique SKU display name) to assign to the user.")]
+        public string LicenseName { get; set; }
     }
 }
